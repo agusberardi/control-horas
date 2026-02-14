@@ -7,6 +7,10 @@ const db = new sqlite3.Database('./database.db');
 
 app.use(cors());
 app.use(express.json());
+app.get('/', (req, res) => {
+  res.send('Backend control-horas OK');
+});
+
 
 /* ---------- TABLAS ---------- */
 db.run(`
@@ -90,8 +94,10 @@ app.get('/hours-by-month', (req, res) => {
 });
 
 /* ---------- START ---------- */
-app.listen(3001, '0.0.0.0', () => {
-  console.log('Servidor accesible en red en el puerto 3001');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
 
 
