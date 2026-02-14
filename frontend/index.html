@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Control de Horas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tipografía moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 16px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+    }
+
+    label {
+      font-weight: 500;
+      margin-top: 12px;
+      display: block;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 16px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      margin-top: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #111827;
+    }
+
+    .card {
+      background: white;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      font-size: 14px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🕒 Control de Horas</h1>
+
+    <!-- FORMULARIO -->
+    <label>Fecha</label>
+    <input type="date" id="date">
+
+    <label>Hora inicio</label>
+    <input type="time" id="start">
+
+    <label>Hora fin</label>
+    <input type="time" id="end">
+
+    <label>Sector</label>
+    <select id="sector">
+      <option value="">Seleccionar sector</option>
+      <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
+      <option value="Triage">Triage</option>
+    </select>
+
+    <button onclick="guardarHoras()">Guardar horas</button>
+
+    <div class="divider"></div>
+
+    <!-- RESUMEN MENSUAL -->
+    <label>Mes</label>
+    <input type="month" id="month">
+
+    <button class="secondary" onclick="verResumen()">Ver resumen del mes</button>
+
+    <div id="resultado"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
