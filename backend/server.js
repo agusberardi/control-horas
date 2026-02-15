@@ -5,15 +5,21 @@ const path = require('path');
 
 const app = express();
 
-/* ---------- DB (RUTA SEGURA PARA RENDER) ---------- */
-const dbPath = path.join(__dirname, 'database.db');
-const db = new sqlite3.Database(dbPath);
-
 /* ---------- MIDDLEWARE ---------- */
 app.use(cors());
 app.use(express.json());
 
-/* ---------- HEALTH CHECK ---------- */
+/* ---------- DB (RUTA RELATIVA SEGURA) ---------- */
+const dbPath = path.join(__dirname, 'database.db');
+const db = new sqlite3.Database(dbPath, err => {
+  if (err) {
+    console.error('Error abriendo DB', err);
+  } else {
+    console.log('SQLite conectado');
+  }
+});
+
+/* ---------- HEALTH CHECK (IMPORTANTE) ---------- */
 app.get('/', (req, res) => {
   res.send('Backend control-horas OK');
 });
@@ -113,12 +119,13 @@ app.get('/hours-by-month', (req, res) => {
   );
 });
 
-/* ---------- START (OBLIGATORIO PARA RENDER) ---------- */
-const PORT = 3001;
+/* ---------- START (RENDER READY) ---------- */
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor backend en puerto ${PORT}`);
+  console.log(`Servidor backend corriendo en puerto ${PORT}`);
 });
+
 
 
 
