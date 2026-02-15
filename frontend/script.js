@@ -1,21 +1,26 @@
-// ⚠️ URL DEL BACKEND EN RENDER (NO localhost / NO IP local)
+// ⚠️ URL DEL BACKEND EN RENDER
 const API = 'https://control-horas-backend.onrender.com';
 const USER_ID = 1;
+
+/* ---------- MES SELECCIONADO ---------- */
 let selectedMonth = null;
-const selectedYear = new Date().getFullYear();
+const currentYear = new Date().getFullYear();
 
-document.addEventListener("DOMContentLoaded", () => {
-  const botones = document.querySelectorAll(".mes-btn");
+/* ---------- BOTONES DE MESES ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const botonesMes = document.querySelectorAll('.mes-btn');
 
-  botones.forEach(btn => {
-    btn.addEventListener("click", () => {
-      botones.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedMonth = btn.dataset.month;
+  botonesMes.forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMonth = btn.dataset.month.padStart(2, '0');
+
+      botonesMes.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      verResumen();
     });
   });
 });
-
 
 /* ---------- GUARDAR HORAS ---------- */
 async function guardarHoras() {
@@ -51,26 +56,27 @@ async function guardarHoras() {
 
     alert(`Horas guardadas ✔️\n$${data.dinero.toFixed(2)}`);
 
+    // refresca resumen si hay mes seleccionado
+    if (selectedMonth) {
+      verResumen();
+    }
+
   } catch (err) {
     console.error(err);
     alert('No se pudo conectar con el servidor');
   }
 }
 
-/* ---------- VER RESUMEN MENSUAL ---------- */
+/* ---------- VER RESUMEN ---------- */
 async function verResumen() {
- if (!selectedMonth) {
-  alert('Seleccioná un mes');
-  return;
-}
-
-const year = selectedYear;
-const month = selectedMonth;
-
+  if (!selectedMonth) {
+    alert('Seleccioná un mes');
+    return;
+  }
 
   try {
     const res = await fetch(
-      `${API}/hours-by-month?year=${year}&month=${month}`
+      `${API}/hours-by-month?year=${currentYear}&month=${selectedMonth}`
     );
 
     const data = await res.json();
@@ -86,9 +92,8 @@ const month = selectedMonth;
       </div>
     `;
 
-    /* ---- TOTAL POR SECTOR ---- */
+    // Totales por sector
     const porSector = {};
-
     data.registros.forEach(r => {
       porSector[r.sector] = (porSector[r.sector] || 0) + r.money;
     });
@@ -101,7 +106,7 @@ const month = selectedMonth;
       `;
     }
 
-    /* ---- LISTADO DETALLADO ---- */
+    // Detalle de horas
     data.registros.forEach(r => {
       html += `
         <div class="card">
@@ -143,7 +148,7 @@ async function borrarHora(id) {
     }
 
     alert('Hora borrada ✔️');
-    verResumen(); // refresca el resumen
+    verResumen();
 
   } catch (err) {
     console.error(err);

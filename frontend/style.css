@@ -1,13 +1,88 @@
-/* ===== CONTENEDOR MESES ===== */
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+}
 
+/* ===== BODY ===== */
+body {
+  font-family: 'Inter', system-ui, Arial, sans-serif;
+  background: #f3f4f6;
+  margin: 0;
+  padding: 16px;
+}
+
+/* ===== TITULOS ===== */
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  max-width: 420px;
+  margin: auto;
+}
+
+/* ===== LABELS ===== */
+label {
+  font-weight: 500;
+  margin-top: 12px;
+  display: block;
+}
+
+/* ===== INPUTS Y SELECT ===== */
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 16px;
+}
+
+/* ===== BOTONES GRANDES ===== */
+button:not(.mes-btn) {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* BOTONES SECUNDARIOS */
+button.secondary {
+  background: #111827;
+}
+
+/* ===== TARJETAS ===== */
+.card {
+  background: white;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 14px;
+}
+
+/* ===== DIVIDER ===== */
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 24px 0;
+}
+
+/* ===== MESES ===== */
 .meses-container {
   display: flex;
   flex-wrap: wrap;          /* uno al lado del otro */
   gap: 6px;                 /* espacio entre botones */
   margin: 10px 0 20px 0;
+  overflow-x: auto;         /* permite scroll horizontal si no entran */
 }
-
-/* ===== BOTONES DE MESES ===== */
 
 .mes-btn {
   width: auto;              /* NO ancho completo */
@@ -19,10 +94,10 @@
   background: #e5e7eb;
   cursor: pointer;
   font-weight: 500;
-  margin-top: 0;            /* evita separación vertical */
+  margin-top: 0;
+  white-space: nowrap;      /* evita que el texto se rompa */
 }
 
-/* Mes seleccionado */
 .mes-btn.active {
   background: #2563eb;
   color: white;

@@ -10,91 +10,29 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, Arial, sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 16px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .container {
-      max-width: 420px;
-      margin: auto;
-    }
-
-    label {
-      font-weight: 500;
-      margin-top: 12px;
-      display: block;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      font-size: 16px;
-    }
-
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      margin-top: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      background: #111827;
-    }
-
-    .card {
-      background: white;
-      padding: 14px;
-      border-radius: 12px;
-      margin-top: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      font-size: 14px;
-    }
-
-    .divider {
-      height: 1px;
-      background: #e5e7eb;
-      margin: 24px 0;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
   <div class="container">
     <h1>🕒 Control de Horas</h1>
-<!-- RESUMEN MENSUAL -->
 
-<div class="meses-container">
-  <button class="mes-btn" data-month="1">Ene</button> <button class="mes-btn" data-month="2">Feb</button>
-  <button class="mes-btn" data-month="3">Mar</button>
-  <button class="mes-btn" data-month="4">Abr</button>
-  <button class="mes-btn" data-month="5">May</button>
-  <button class="mes-btn" data-month="6">Jun</button>
-  <button class="mes-btn" data-month="7">Jul</button>
-  <button class="mes-btn" data-month="8">Ago</button>
-  <button class="mes-btn" data-month="9">Sep</button>
-  <button class="mes-btn" data-month="10">Oct</button>
-  <button class="mes-btn" data-month="11">Nov</button>
-  <button class="mes-btn" data-month="12">Dic</button>
-</div>
+    <!-- BOTONES DE MESES -->
+    <div class="meses-container">
+      <button class="mes-btn" data-month="1">Ene</button>
+      <button class="mes-btn" data-month="2">Feb</button>
+      <button class="mes-btn" data-month="3">Mar</button>
+      <button class="mes-btn" data-month="4">Abr</button>
+      <button class="mes-btn" data-month="5">May</button>
+      <button class="mes-btn" data-month="6">Jun</button>
+      <button class="mes-btn" data-month="7">Jul</button>
+      <button class="mes-btn" data-month="8">Ago</button>
+      <button class="mes-btn" data-month="9">Sep</button>
+      <button class="mes-btn" data-month="10">Oct</button>
+      <button class="mes-btn" data-month="11">Nov</button>
+      <button class="mes-btn" data-month="12">Dic</button>
+    </div>
+
     <!-- FORMULARIO -->
     <label>Fecha</label>
     <input type="date" id="date">
@@ -116,10 +54,7 @@
 
     <div class="divider"></div>
 
-    
-
-<button class="secondary" onclick="verResumen()">Ver resumen del mes</button>
-
+    <button class="secondary" onclick="verResumen()">Ver resumen del mes</button>
 
     <div id="resultado"></div>
   </div>
