@@ -60,6 +60,10 @@ app.get('/init-user', (req, res) => {
 app.post('/add-hours', (req, res) => {
   const { user_id, date, start_time, end_time, sector } = req.body;
 
+  if (!user_id || !date || !start_time || !end_time) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
+
   const [sh, sm] = start_time.split(':').map(Number);
   const [eh, em] = end_time.split(':').map(Number);
 
@@ -73,26 +77,42 @@ app.post('/add-hours', (req, res) => {
     const money = hours * user.pago_hora;
 
     db.run(
-      `INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `
+      INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
+      VALUES (?, ?, ?, ?, ?, ?)
+      `,
       [user_id, date, start_time, end_time, sector, money],
       () => res.json({ dinero: money })
     );
   });
 });
-app.get('/', (req, res) => {
-  res.send('Backend OK');
+
+/* ---------- RESUMEN MES ---------- */
+app.get('/hours-by-month', (req, res) => {
+  const { year, month } = req.query;
+  const like = `${year}-${month}%`;
+
+  db.all(
+    `
+    SELECT *, SUM(money) OVER () AS total
+    FROM hours
+    WHERE date LIKE ?
+    ORDER BY date
+    `,
+    [like],
+    (err, rows) => {
+      const total = rows.length ? rows[0].total : 0;
+      res.json({ total, registros: rows });
+    }
+  );
 });
 
 /* ---------- START (RENDER) ---------- */
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor backend escuchando en puerto ${PORT}`);
 });
-
-
-
 
 
 
