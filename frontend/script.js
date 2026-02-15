@@ -1,4 +1,5 @@
-const API = 'http://172.20.10.3:3001';
+// ⚠️ URL DEL BACKEND EN RENDER (NO localhost / NO IP local)
+const API = 'https://control-horas-6vzd.onrender.com';
 const USER_ID = 1;
 
 /* ---------- GUARDAR HORAS ---------- */
@@ -13,25 +14,35 @@ async function guardarHoras() {
     return;
   }
 
-  const res = await fetch(`${API}/add-hours`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: USER_ID,
-      date,
-      start_time: start,
-      end_time: end,
-      sector
-    })
-  });
+  try {
+    const res = await fetch(`${API}/add-hours`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: USER_ID,
+        date,
+        start_time: start,
+        end_time: end,
+        sector
+      })
+    });
 
-  const data = await res.json();
-  alert(`Horas guardadas ✔️\n$${data.dinero.toFixed(2)}`);
+    if (!res.ok) {
+      throw new Error('Error al guardar horas');
+    }
+
+    const data = await res.json();
+    alert(`Horas guardadas ✔️\n$${data.dinero.toFixed(2)}`);
+  } catch (err) {
+    alert('No se pudo conectar con el servidor');
+    console.error(err);
+  }
 }
 
 /* ---------- VER RESUMEN ---------- */
 async function verResumen() {
   const monthInput = document.getElementById('month').value;
+
   if (!monthInput) {
     alert('Seleccioná un mes');
     return;
@@ -39,31 +50,43 @@ async function verResumen() {
 
   const [year, month] = monthInput.split('-');
 
-  const res = await fetch(`${API}/hours-by-month?year=${year}&month=${month}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(
+      `${API}/hours-by-month?year=${year}&month=${month}`
+    );
 
-  let html = `<div class="card"><b>Total del mes:</b> $${data.total.toFixed(2)}</div>`;
+    if (!res.ok) {
+      throw new Error('Error al obtener resumen');
+    }
 
-  const porSector = {};
+    const data = await res.json();
 
-  data.registros.forEach(r => {
-    porSector[r.sector] = (porSector[r.sector] || 0) + r.money;
-  });
+    let html = `<div class="card"><b>Total del mes:</b> $${data.total.toFixed(2)}</div>`;
 
-  for (const sector in porSector) {
-    html += `<div class="card"><b>${sector}</b>: $${porSector[sector].toFixed(2)}</div>`;
+    const porSector = {};
+
+    data.registros.forEach(r => {
+      porSector[r.sector] = (porSector[r.sector] || 0) + r.money;
+    });
+
+    for (const sector in porSector) {
+      html += `<div class="card"><b>${sector}</b>: $${porSector[sector].toFixed(2)}</div>`;
+    }
+
+    data.registros.forEach(r => {
+      html += `
+        <div class="card">
+          📅 ${r.date}<br>
+          ⏰ ${r.start_time} - ${r.end_time}<br>
+          🏥 ${r.sector}<br>
+          💰 $${r.money.toFixed(2)}
+        </div>
+      `;
+    });
+
+    document.getElementById('resultado').innerHTML = html;
+  } catch (err) {
+    alert('No se pudo cargar el resumen');
+    console.error(err);
   }
-
-  data.registros.forEach(r => {
-    html += `
-      <div class="card">
-        📅 ${r.date}<br>
-        ⏰ ${r.start_time} - ${r.end_time}<br>
-        🏥 ${r.sector}<br>
-        💰 $${r.money.toFixed(2)}
-      </div>
-    `;
-  });
-
-  document.getElementById('resultado').innerHTML = html;
 }
