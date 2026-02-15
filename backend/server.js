@@ -41,18 +41,29 @@ db.serialize(() => {
   `);
 });
 
-/* ---------- INIT USER (SIEMPRE EXISTE) ---------- */
-app.get('/init-user', (req, res) => {
-  db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
-    if (user) return res.json(user);
+/* ---------- FUNCIÓN: OBTENER O CREAR USUARIO ---------- */
+function getOrCreateUser(user_id, callback) {
+  db.get('SELECT * FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (err) return callback(err);
 
+    if (user) return callback(null, user);
+
+    // Si no existe, lo creamos automáticamente
     db.run(
-      'INSERT INTO users (id, name, pago_hora) VALUES (1, ?, ?)',
-      ['Agustin', 309],
-      () => res.json({ user_id: 1 })
+      'INSERT INTO users (id, name, pago_hora) VALUES (?, ?, ?)',
+      [user_id, 'Agustin', 309],
+      function (err) {
+        if (err) return callback(err);
+
+        callback(null, {
+          id: user_id,
+          name: 'Agustin',
+          pago_hora: 309
+        });
+      }
     );
   });
-});
+}
 
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', (req, res) => {
