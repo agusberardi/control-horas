@@ -1,5 +1,5 @@
 // ⚠️ URL DEL BACKEND EN RENDER (NO localhost / NO IP local)
-const API = 'https://control-horas-6vzd.onrender.com';
+const API = 'https://control-horas-backend.onrender.com';
 const USER_ID = 1;
 
 /* ---------- GUARDAR HORAS ---------- */
