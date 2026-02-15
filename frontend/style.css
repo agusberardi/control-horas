@@ -1,49 +1,30 @@
-.meses-container {
-  display: flex;
-  overflow-x: auto;
-  gap: 6px;
-  padding: 8px 0 16px 0;
-}
-
-.mes-btn {
-  width: auto;
-  min-width: 50px;
-  padding: 6px 10px;
-  font-size: 13px;
-  border-radius: 16px;
-  border: 1px solid #d1d5db;
-  background: #e5e7eb;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.mes-btn.active {
-  background: #2563eb;
-  color: white;
-  border: none;
-}
-/* ===== MESES EN FILA ===== */
+/* ===== CONTENEDOR MESES ===== */
 
 .meses-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: wrap;          /* uno al lado del otro */
+  gap: 6px;                 /* espacio entre botones */
   margin: 10px 0 20px 0;
 }
 
+/* ===== BOTONES DE MESES ===== */
+
 .mes-btn {
-  width: auto !important;   /* rompe el width:100% global */
+  width: auto;              /* NO ancho completo */
+  min-width: 48px;
   padding: 6px 10px;
   font-size: 13px;
   border-radius: 14px;
   border: 1px solid #d1d5db;
   background: #e5e7eb;
+  cursor: pointer;
   font-weight: 500;
+  margin-top: 0;            /* evita separación vertical */
 }
 
+/* Mes seleccionado */
 .mes-btn.active {
   background: #2563eb;
   color: white;
   border: none;
 }
-
