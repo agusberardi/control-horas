@@ -1,6 +1,21 @@
 // ⚠️ URL DEL BACKEND EN RENDER (NO localhost / NO IP local)
 const API = 'https://control-horas-backend.onrender.com';
 const USER_ID = 1;
+let selectedMonth = null;
+const selectedYear = new Date().getFullYear();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const botones = document.querySelectorAll(".mes-btn");
+
+  botones.forEach(btn => {
+    btn.addEventListener("click", () => {
+      botones.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedMonth = btn.dataset.month;
+    });
+  });
+});
+
 
 /* ---------- GUARDAR HORAS ---------- */
 async function guardarHoras() {
@@ -44,14 +59,14 @@ async function guardarHoras() {
 
 /* ---------- VER RESUMEN MENSUAL ---------- */
 async function verResumen() {
-  const monthInput = document.getElementById('month').value;
+ if (!selectedMonth) {
+  alert('Seleccioná un mes');
+  return;
+}
 
-  if (!monthInput) {
-    alert('Seleccioná un mes');
-    return;
-  }
+const year = selectedYear;
+const month = selectedMonth;
 
-  const [year, month] = monthInput.split('-');
 
   try {
     const res = await fetch(
