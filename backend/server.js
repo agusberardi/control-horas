@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
       pago_hora REAL
     )
@@ -41,29 +41,18 @@ db.serialize(() => {
   `);
 });
 
-/* ---------- FUNCIÓN: OBTENER O CREAR USUARIO ---------- */
-function getOrCreateUser(user_id, callback) {
-  db.get('SELECT * FROM users WHERE id = ?', [user_id], (err, user) => {
-    if (err) return callback(err);
+/* ---------- INIT USER (SIEMPRE EXISTE) ---------- */
+app.get('/init-user', (req, res) => {
+  db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
+    if (user) return res.json(user);
 
-    if (user) return callback(null, user);
-
-    // Si no existe, lo creamos automáticamente
     db.run(
-      'INSERT INTO users (id, name, pago_hora) VALUES (?, ?, ?)',
-      [user_id, 'Agustin', 309],
-      function (err) {
-        if (err) return callback(err);
-
-        callback(null, {
-          id: user_id,
-          name: 'Agustin',
-          pago_hora: 309
-        });
-      }
+      'INSERT INTO users (id, name, pago_hora) VALUES (1, ?, ?)',
+      ['Agustin', 309],
+      () => res.json({ user_id: 1 })
     );
   });
-}
+});
 
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', (req, res) => {
@@ -82,8 +71,8 @@ app.post('/add-hours', (req, res) => {
 
   const hours = (endM - startM) / 60;
 
-  getOrCreateUser(user_id, (err, user) => {
-    if (err) return res.status(500).json({ error: err.message });
+  db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const money = hours * user.pago_hora;
 
@@ -93,33 +82,38 @@ app.post('/add-hours', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?)
       `,
       [user_id, date, start_time, end_time, sector, money],
-      err => {
-        if (err) return res.status(500).json({ error: err.message });
-
+      function () {
         res.json({ dinero: money });
       }
     );
   });
 });
 
-/* ---------- RESUMEN MES ---------- */
+/* ---------- RESUMEN POR MES DE COBRO (21 → 20) ---------- */
 app.get('/hours-by-month', (req, res) => {
   const { year, month } = req.query;
-  const like = `${year}-${month}%`;
+  const target = `${year}-${month}`;
 
   db.all(
     `
-    SELECT *, SUM(money) OVER () AS total
+    SELECT *,
+      CASE
+        WHEN CAST(strftime('%d', date) AS INTEGER) <= 20
+          THEN strftime('%Y-%m', date, '+1 month')
+        ELSE
+          strftime('%Y-%m', date, '+2 month')
+      END AS mes_cobro
     FROM hours
-    WHERE date LIKE ?
     ORDER BY date
     `,
-    [like],
+    [],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
 
-      const total = rows.length ? rows[0].total : 0;
-      res.json({ total, registros: rows });
+      const registros = rows.filter(r => r.mes_cobro === target);
+      const total = registros.reduce((sum, r) => sum + r.money, 0);
+
+      res.json({ total, registros });
     }
   );
 });
@@ -144,5 +138,5 @@ app.delete('/delete-hour/:id', (req, res) => {
 /* ---------- START (RENDER) ---------- */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('Servidor backend corriendo');
+  console.log('Servidor backend corriendo en Render');
 });
