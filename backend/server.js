@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY,
       name TEXT,
       pago_hora REAL
     )
@@ -41,20 +41,29 @@ db.serialize(() => {
   `);
 });
 
-/* ---------- INIT USER ---------- */
-app.get('/init-user', (req, res) => {
-  db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
-    if (user) return res.json(user);
+/* ---------- FUNCIÓN: OBTENER O CREAR USUARIO ---------- */
+function getOrCreateUser(user_id, callback) {
+  db.get('SELECT * FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (err) return callback(err);
 
+    if (user) return callback(null, user);
+
+    // Si no existe, lo creamos automáticamente
     db.run(
-      'INSERT INTO users (name, pago_hora) VALUES (?, ?)',
-      ['Agustin', 309],
-      function () {
-        res.json({ user_id: this.lastID });
+      'INSERT INTO users (id, name, pago_hora) VALUES (?, ?, ?)',
+      [user_id, 'Agustin', 309],
+      function (err) {
+        if (err) return callback(err);
+
+        callback(null, {
+          id: user_id,
+          name: 'Agustin',
+          pago_hora: 309
+        });
       }
     );
   });
-});
+}
 
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', (req, res) => {
@@ -73,16 +82,22 @@ app.post('/add-hours', (req, res) => {
 
   const hours = (endM - startM) / 60;
 
-  db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  getOrCreateUser(user_id, (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
 
     const money = hours * user.pago_hora;
 
     db.run(
-      `INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `
+      INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
+      VALUES (?, ?, ?, ?, ?, ?)
+      `,
       [user_id, date, start_time, end_time, sector, money],
-      () => res.json({ dinero: money })
+      err => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.json({ dinero: money });
+      }
     );
   });
 });
@@ -101,11 +116,14 @@ app.get('/hours-by-month', (req, res) => {
     `,
     [like],
     (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
       const total = rows.length ? rows[0].total : 0;
       res.json({ total, registros: rows });
     }
   );
 });
+
 /* ---------- DELETE HOUR ---------- */
 app.delete('/delete-hour/:id', (req, res) => {
   const { id } = req.params;
@@ -114,14 +132,10 @@ app.delete('/delete-hour/:id', (req, res) => {
     'DELETE FROM hours WHERE id = ?',
     [id],
     function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-
+      if (err) return res.status(500).json({ error: err.message });
       if (this.changes === 0) {
         return res.status(404).json({ error: 'Registro no encontrado' });
       }
-
       res.json({ ok: true });
     }
   );
@@ -129,11 +143,6 @@ app.delete('/delete-hour/:id', (req, res) => {
 
 /* ---------- START (RENDER) ---------- */
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log('Servidor backend corriendo');
 });
-
-
-
-
