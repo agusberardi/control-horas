@@ -1,47 +1,57 @@
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 const app = express();
-const db = new sqlite3.Database('./database.db');
 
+/* ---------- DB (RUTA SEGURA PARA RENDER) ---------- */
+const dbPath = path.join(__dirname, 'database.db');
+const db = new sqlite3.Database(dbPath);
+
+/* ---------- MIDDLEWARE ---------- */
 app.use(cors());
 app.use(express.json());
+
+/* ---------- HEALTH CHECK ---------- */
 app.get('/', (req, res) => {
   res.send('Backend control-horas OK');
 });
 
-
 /* ---------- TABLAS ---------- */
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    pago_hora REAL
-  )
-`);
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      pago_hora REAL
+    )
+  `);
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS hours (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    date TEXT,
-    start_time TEXT,
-    end_time TEXT,
-    sector TEXT,
-    money REAL
-  )
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS hours (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      date TEXT,
+      start_time TEXT,
+      end_time TEXT,
+      sector TEXT,
+      money REAL
+    )
+  `);
+});
 
 /* ---------- INIT USER ---------- */
 app.get('/init-user', (req, res) => {
   db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
+    if (err) return res.status(500).json(err);
     if (user) return res.json(user);
 
     db.run(
       'INSERT INTO users (name, pago_hora) VALUES (?, ?)',
       ['Agustin', 309],
-      function () {
+      function (err) {
+        if (err) return res.status(500).json(err);
         res.json({ user_id: this.lastID });
       }
     );
@@ -51,6 +61,10 @@ app.get('/init-user', (req, res) => {
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', (req, res) => {
   const { user_id, date, start_time, end_time, sector } = req.body;
+
+  if (!user_id || !date || !start_time || !end_time) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
 
   const [sh, sm] = start_time.split(':').map(Number);
   const [eh, em] = end_time.split(':').map(Number);
@@ -62,13 +76,18 @@ app.post('/add-hours', (req, res) => {
   const hours = (endM - startM) / 60;
 
   db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (err || !user) return res.status(500).json(err || {});
+
     const money = hours * user.pago_hora;
 
     db.run(
       `INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [user_id, date, start_time, end_time, sector, money],
-      () => res.json({ dinero: money })
+      err => {
+        if (err) return res.status(500).json(err);
+        res.json({ dinero: money });
+      }
     );
   });
 });
@@ -85,6 +104,7 @@ app.get('/hours-by-month', (req, res) => {
      ORDER BY date`,
     [`${ym}%`],
     (err, rows) => {
+      if (err) return res.status(500).json(err);
       res.json({
         total: rows.length ? rows[0].total : 0,
         registros: rows
@@ -93,11 +113,11 @@ app.get('/hours-by-month', (req, res) => {
   );
 });
 
-/* ---------- START ---------- */
-const PORT = process.env.PORT || 3000;
+/* ---------- START (OBLIGATORIO PARA RENDER) ---------- */
+const PORT = 3001;
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor backend en puerto ${PORT}`);
 });
 
 
