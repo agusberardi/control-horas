@@ -60,7 +60,7 @@ app.get('/init-user', (req, res) => {
 app.post('/add-hours', (req, res) => {
   const { user_id, date, start_time, end_time, sector } = req.body;
 
-  if (!user_id || !date || !start_time || !end_time) {
+  if (!user_id || !date || !start_time || !end_time || !sector) {
     return res.status(400).json({ error: 'Datos incompletos' });
   }
 
@@ -74,13 +74,13 @@ app.post('/add-hours', (req, res) => {
   const hours = (endM - startM) / 60;
 
   db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
     const money = hours * user.pago_hora;
 
     db.run(
-      `
-      INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
-      VALUES (?, ?, ?, ?, ?, ?)
-      `,
+      `INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [user_id, date, start_time, end_time, sector, money],
       () => res.json({ dinero: money })
     );
@@ -111,8 +111,9 @@ app.get('/hours-by-month', (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor backend escuchando en puerto ${PORT}`);
+  console.log('Servidor backend corriendo');
 });
+
 
 
 
