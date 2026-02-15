@@ -41,29 +41,27 @@ db.serialize(() => {
   `);
 });
 
-/* ---------- FUNCIÓN: OBTENER O CREAR USUARIO ---------- */
-function getOrCreateUser(user_id, callback) {
-  db.get('SELECT * FROM users WHERE id = ?', [user_id], (err, user) => {
-    if (err) return callback(err);
-
-    if (user) return callback(null, user);
-
-    // Si no existe, lo creamos automáticamente
-    db.run(
-      'INSERT INTO users (id, name, pago_hora) VALUES (?, ?, ?)',
-      [user_id, 'Agustin', 309],
-      function (err) {
-        if (err) return callback(err);
-
-        callback(null, {
-          id: user_id,
-          name: 'Agustin',
-          pago_hora: 309
-        });
-      }
-    );
+/* ---------- INIT USER AUTOMÁTICO ---------- */
+db.serialize(() => {
+  db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
+    if (err) {
+      console.error('Error chequeando usuario inicial:', err);
+      return;
+    }
+    if (!user) {
+      db.run(
+        'INSERT INTO users (id, name, pago_hora) VALUES (1, ?, ?)',
+        ['Agustin', 309],
+        (err) => {
+          if (err) console.error('Error creando usuario inicial', err);
+          else console.log('Usuario inicial creado: id 1');
+        }
+      );
+    } else {
+      console.log('Usuario inicial ya existe');
+    }
   });
-}
+});
 
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', (req, res) => {
@@ -83,6 +81,7 @@ app.post('/add-hours', (req, res) => {
   const hours = (endM - startM) / 60;
 
   db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const money = hours * user.pago_hora;
@@ -107,7 +106,7 @@ app.get('/hours-by-month', (req, res) => {
 
   db.all(
     `
-    SELECT *,
+    SELECT * ,
       CASE
         WHEN CAST(strftime('%d', date) AS INTEGER) <= 20
           THEN strftime('%Y-%m', date, '+1 month')
@@ -149,5 +148,5 @@ app.delete('/delete-hour/:id', (req, res) => {
 /* ---------- START (RENDER) ---------- */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('Servidor backend corriendo en Render');
+  console.log(`Servidor backend corriendo en Render en puerto ${PORT}`);
 });
