@@ -102,31 +102,41 @@ app.post('/add-hours', (req, res) => {
 /* ---------- RESUMEN POR MES DE COBRO (21 → 20) ---------- */
 app.get('/hours-by-month', (req, res) => {
   const { year, month } = req.query;
-  const target = `${year}-${month}`;
 
   db.all(
-    `
-    SELECT * ,
-      CASE
-        WHEN CAST(strftime('%d', date) AS INTEGER) <= 20
-          THEN strftime('%Y-%m', date, '+1 month')
-        ELSE
-          strftime('%Y-%m', date, '+2 month')
-      END AS mes_cobro
-    FROM hours
-    ORDER BY date
-    `,
+    `SELECT * FROM hours`,
     [],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
 
-      const registros = rows.filter(r => r.mes_cobro === target);
-      const total = registros.reduce((sum, r) => sum + r.money, 0);
+      const registros = rows.filter(r => {
+        const [y, m, d] = r.date.split('-').map(Number);
+
+        let periodoYear = y;
+        let periodoMonth = m;
+
+        // Si es del 21 en adelante → pasa al mes siguiente
+        if (d >= 21) {
+          periodoMonth += 1;
+          if (periodoMonth === 13) {
+            periodoMonth = 1;
+            periodoYear += 1;
+          }
+        }
+
+        return (
+          periodoYear === Number(year) &&
+          periodoMonth === Number(month)
+        );
+      });
+
+      const total = registros.reduce((acc, r) => acc + r.money, 0);
 
       res.json({ total, registros });
     }
   );
 });
+
 
 /* ---------- DELETE HOUR ---------- */
 app.delete('/delete-hour/:id', (req, res) => {
