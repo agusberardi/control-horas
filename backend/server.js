@@ -6,7 +6,7 @@ const app = express();
 
 /* ---------- SUPABASE ---------- */
 const supabaseUrl = 'https://kslcypddazdiqnvnubrx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I'; // después la pasamos a env
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ---------- MIDDLEWARE ---------- */
@@ -82,7 +82,45 @@ app.post('/add-hours', async (req, res) => {
   res.json({ dinero: money });
 });
 
-/* ---------- RESUMEN MES (21 → 20) ---------- */
+/* ---------- ✅ RESUMEN AUTOMÁTICO 21 → 20 (EL QUE FALTABA) ---------- */
+app.get('/resumen', async (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id requerido' });
+  }
+
+  const { data, error } = await supabase
+    .from('hours')
+    .select('date, money')
+    .eq('user_id', user_id);
+
+  if (error) return res.status(500).json(error);
+
+  const resumen = {};
+
+  data.forEach(r => {
+    const fecha = new Date(r.date);
+    let year = fecha.getFullYear();
+    let month = fecha.getMonth() + 1;
+
+    // regla 21 → 20
+    if (fecha.getDate() <= 20) {
+      month -= 1;
+      if (month === 0) {
+        month = 12;
+        year -= 1;
+      }
+    }
+
+    const key = `${year}-${String(month).padStart(2, '0')}`;
+    resumen[key] = (resumen[key] || 0) + r.money;
+  });
+
+  res.json(resumen);
+});
+
+/* ---------- RESUMEN MES MANUAL (SE MANTIENE) ---------- */
 app.get('/hours-by-month', async (req, res) => {
   const { year, month } = req.query;
 
