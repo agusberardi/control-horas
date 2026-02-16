@@ -120,14 +120,24 @@ app.get('/resumen', async (req, res) => {
   res.json(resumen);
 });
 
-/* ---------- RESUMEN MES MANUAL (SE MANTIENE) ---------- */
+/* ---------- RESUMEN MES (21 → 20 CORRECTO) ---------- */
 app.get('/hours-by-month', async (req, res) => {
   const { year, month } = req.query;
 
-  const start = `${year}-${String(month).padStart(2, '0')}-21`;
-  const nextMonth = month == 12 ? 1 : Number(month) + 1;
-  const nextYear = month == 12 ? Number(year) + 1 : year;
-  const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-20`;
+  if (!year || !month) {
+    return res.status(400).json({ error: 'Faltan parámetros' });
+  }
+
+  const m = Number(month);
+  const y = Number(year);
+
+  // Mes anterior
+  const prevMonth = m === 1 ? 12 : m - 1;
+  const prevYear = m === 1 ? y - 1 : y;
+
+  // Rango correcto
+  const start = `${prevYear}-${String(prevMonth).padStart(2, '0')}-21`;
+  const end = `${y}-${String(m).padStart(2, '0')}-20`;
 
   const { data, error } = await supabase
     .from('hours')
@@ -138,9 +148,13 @@ app.get('/hours-by-month', async (req, res) => {
 
   if (error) return res.status(500).json(error);
 
-  const total = data.reduce((sum, h) => sum + h.money, 0);
+  const total = data.reduce((sum, h) => sum + Number(h.money), 0);
 
-  res.json({ total, registros: data });
+  res.json({
+    periodo: `${start} → ${end}`,
+    total,
+    registros: data
+  });
 });
 
 /* ---------- DELETE ---------- */
