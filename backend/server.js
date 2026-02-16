@@ -1,70 +1,46 @@
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-/* ---------- DB ---------- */
-const dbPath = path.join(__dirname, 'database.db');
-const db = new sqlite3.Database(dbPath);
+/* ---------- SUPABASE ---------- */
+const supabaseUrl = 'https://kslcypddazdiqnvnubrx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I'; // después la pasamos a env
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ---------- MIDDLEWARE ---------- */
 app.use(cors());
 app.use(express.json());
 
-/* ---------- HEALTH CHECK ---------- */
+/* ---------- HEALTH ---------- */
 app.get('/', (req, res) => {
-  res.send('Backend control-horas OK');
+  res.send('Backend Supabase OK');
 });
 
-/* ---------- TABLAS ---------- */
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      pago_hora REAL
-    )
-  `);
+/* ---------- INIT USER ---------- */
+app.get('/init-user', async (req, res) => {
+  const { data: user } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', 1)
+    .single();
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS hours (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      date TEXT,
-      start_time TEXT,
-      end_time TEXT,
-      sector TEXT,
-      money REAL
-    )
-  `);
-});
+  if (user) return res.json(user);
 
-/* ---------- INIT USER AUTOMÁTICO ---------- */
-db.serialize(() => {
-  db.get('SELECT * FROM users WHERE id = 1', (err, user) => {
-    if (err) {
-      console.error('Error chequeando usuario inicial:', err);
-      return;
-    }
-    if (!user) {
-      db.run(
-        'INSERT INTO users (id, name, pago_hora) VALUES (1, ?, ?)',
-        ['Agustin', 309],
-        (err) => {
-          if (err) console.error('Error creando usuario inicial', err);
-          else console.log('Usuario inicial creado: id 1');
-        }
-      );
-    } else {
-      console.log('Usuario inicial ya existe');
-    }
-  });
+  const { data, error } = await supabase
+    .from('users')
+    .insert({ name: 'Agustin', pago_hora: 309 })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 });
 
 /* ---------- ADD HOURS ---------- */
-app.post('/add-hours', (req, res) => {
+app.post('/add-hours', async (req, res) => {
   const { user_id, date, start_time, end_time, sector } = req.body;
 
   if (!user_id || !date || !start_time || !end_time || !sector) {
@@ -80,83 +56,69 @@ app.post('/add-hours', (req, res) => {
 
   const hours = (endM - startM) / 60;
 
-  db.get('SELECT pago_hora FROM users WHERE id = ?', [user_id], (err, user) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  const { data: user } = await supabase
+    .from('users')
+    .select('pago_hora')
+    .eq('id', user_id)
+    .single();
 
-    const money = hours * user.pago_hora;
+  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    db.run(
-      `
-      INSERT INTO hours (user_id, date, start_time, end_time, sector, money)
-      VALUES (?, ?, ?, ?, ?, ?)
-      `,
-      [user_id, date, start_time, end_time, sector, money],
-      function () {
-        res.json({ dinero: money });
-      }
-    );
-  });
+  const money = hours * user.pago_hora;
+
+  const { error } = await supabase
+    .from('hours')
+    .insert({
+      user_id,
+      date,
+      start_time,
+      end_time,
+      sector,
+      money
+    });
+
+  if (error) return res.status(500).json(error);
+
+  res.json({ dinero: money });
 });
 
-/* ---------- RESUMEN POR MES DE COBRO (21 → 20) ---------- */
-app.get('/hours-by-month', (req, res) => {
+/* ---------- RESUMEN MES (21 → 20) ---------- */
+app.get('/hours-by-month', async (req, res) => {
   const { year, month } = req.query;
 
-  db.all(
-    `SELECT * FROM hours`,
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+  const start = `${year}-${String(month).padStart(2, '0')}-21`;
+  const nextMonth = month == 12 ? 1 : Number(month) + 1;
+  const nextYear = month == 12 ? Number(year) + 1 : year;
+  const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-20`;
 
-      const registros = rows.filter(r => {
-        const [y, m, d] = r.date.split('-').map(Number);
+  const { data, error } = await supabase
+    .from('hours')
+    .select('*')
+    .gte('date', start)
+    .lte('date', end)
+    .order('date');
 
-        let periodoYear = y;
-        let periodoMonth = m;
+  if (error) return res.status(500).json(error);
 
-        // Si es del 21 en adelante → pasa al mes siguiente
-        if (d >= 21) {
-          periodoMonth += 1;
-          if (periodoMonth === 13) {
-            periodoMonth = 1;
-            periodoYear += 1;
-          }
-        }
+  const total = data.reduce((sum, h) => sum + h.money, 0);
 
-        return (
-          periodoYear === Number(year) &&
-          periodoMonth === Number(month)
-        );
-      });
-
-      const total = registros.reduce((acc, r) => acc + r.money, 0);
-
-      res.json({ total, registros });
-    }
-  );
+  res.json({ total, registros: data });
 });
 
+/* ---------- DELETE ---------- */
+app.delete('/delete-hour/:id', async (req, res) => {
+  const { error } = await supabase
+    .from('hours')
+    .delete()
+    .eq('id', req.params.id);
 
-/* ---------- DELETE HOUR ---------- */
-app.delete('/delete-hour/:id', (req, res) => {
-  const { id } = req.params;
+  if (error) return res.status(500).json(error);
 
-  db.run(
-    'DELETE FROM hours WHERE id = ?',
-    [id],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Registro no encontrado' });
-      }
-      res.json({ ok: true });
-    }
-  );
+  res.json({ ok: true });
 });
 
-/* ---------- START (RENDER) ---------- */
+/* ---------- START ---------- */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor backend corriendo en Render en puerto ${PORT}`);
+  console.log('Servidor Supabase corriendo');
 });
