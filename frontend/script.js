@@ -4,10 +4,10 @@ let USER_ID = null;
 let selectedMonth = null;
 
 /* ---------- INIT APP ---------- */
-window.onload = async () => {
+window.addEventListener('DOMContentLoaded', async () => {
   await initUser();
   setCurrentMonth();
-};
+});
 
 /* ---------- INIT USER ---------- */
 async function initUser() {
@@ -25,13 +25,12 @@ async function initUser() {
   }
 }
 
-/* ---------- MES ACTUAL ---------- */
+/* ---------- MES ACTUAL (REGLA 21 → 20) ---------- */
 function setCurrentMonth() {
   const now = new Date();
   let month = now.getMonth() + 1;
   let year = now.getFullYear();
 
-  // regla 21 → 20
   if (now.getDate() <= 20) {
     month -= 1;
     if (month === 0) {
@@ -44,7 +43,7 @@ function setCurrentMonth() {
 }
 
 /* ---------- SELECCIONAR MES ---------- */
-function selectMonth(month, year = new Date().getFullYear()) {
+function selectMonth(month, year) {
   selectedMonth = { month, year };
 
   document.querySelectorAll('.mes-btn').forEach(btn => {
@@ -91,7 +90,7 @@ async function guardarHoras() {
   });
 
   if (!res.ok) {
-    alert('Error al guardar');
+    alert('Error al guardar horas');
     return;
   }
 
@@ -100,7 +99,7 @@ async function guardarHoras() {
 
 /* ---------- CARGAR RESUMEN + DASHBOARD ---------- */
 async function cargarResumen() {
-  if (!selectedMonth) return;
+  if (!selectedMonth || !USER_ID) return;
 
   const { month, year } = selectedMonth;
 
@@ -110,30 +109,34 @@ async function cargarResumen() {
 
   const data = await res.json();
 
-  // DASHBOARD
+  /* DASHBOARD */
   document.getElementById('dash-total').innerText =
-    `$${data.total.toFixed(2)}`;
+    `$${(data.total || 0).toFixed(2)}`;
 
   document.getElementById('dash-hours').innerText =
-    `${calcularHoras(data.registros)} h`;
+    `${calcularHoras(data.registros || [])} h`;
 
   document.getElementById('dash-period').innerText =
     `${String(month).padStart(2, '0')}/${year}`;
 
-  // DETALLE
+  /* DETALLE */
   let html = '';
 
-  data.registros.forEach(r => {
-    html += `
-      <div class="card">
-        📅 ${r.date}<br>
-        ⏰ ${r.start_time} - ${r.end_time}<br>
-        🏥 ${r.sector}<br>
-        💰 $${r.money.toFixed(2)}<br>
-        <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
-      </div>
-    `;
-  });
+  if (!data.registros || data.registros.length === 0) {
+    html = `<div class="card">No hay horas cargadas</div>`;
+  } else {
+    data.registros.forEach(r => {
+      html += `
+        <div class="card">
+          📅 ${r.date}<br>
+          ⏰ ${r.start_time} - ${r.end_time}<br>
+          🏥 ${r.sector}<br>
+          💰 $${r.money.toFixed(2)}<br>
+          <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
+        </div>
+      `;
+    });
+  }
 
   document.getElementById('resultado').innerHTML = html;
 }
