@@ -120,42 +120,41 @@ app.get('/resumen', async (req, res) => {
   res.json(resumen);
 });
 
-/* ---------- RESUMEN MES (21 → 20 CORRECTO) ---------- */
+/* ---------- RESUMEN MES (21 → 20) + USUARIO ---------- */
 app.get('/hours-by-month', async (req, res) => {
-  const { year, month } = req.query;
+  const { year, month, user_id } = req.query;
 
-  if (!year || !month) {
-    return res.status(400).json({ error: 'Faltan parámetros' });
+  if (!year || !month || !user_id) {
+    return res.status(400).json({ error: 'Parámetros incompletos' });
   }
 
-  const m = Number(month);
-  const y = Number(year);
+  const start = `${year}-${String(month).padStart(2, '0')}-21`;
 
-  // Mes anterior
-  const prevMonth = m === 1 ? 12 : m - 1;
-  const prevYear = m === 1 ? y - 1 : y;
+  const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
+  const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
 
-  // Rango correcto
-  const start = `${prevYear}-${String(prevMonth).padStart(2, '0')}-21`;
-  const end = `${y}-${String(m).padStart(2, '0')}-20`;
+  const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-20`;
 
   const { data, error } = await supabase
     .from('hours')
     .select('*')
+    .eq('user_id', user_id)   // 🔴 ESTA ERA LA CLAVE
     .gte('date', start)
     .lte('date', end)
-    .order('date');
+    .order('date', { ascending: true });
 
-  if (error) return res.status(500).json(error);
+  if (error) {
+    return res.status(500).json(error);
+  }
 
-  const total = data.reduce((sum, h) => sum + Number(h.money), 0);
+  const total = data.reduce((sum, h) => sum + h.money, 0);
 
   res.json({
-    periodo: `${start} → ${end}`,
     total,
     registros: data
   });
 });
+
 
 /* ---------- DELETE ---------- */
 app.delete('/delete-hour/:id', async (req, res) => {
