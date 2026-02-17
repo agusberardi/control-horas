@@ -4,42 +4,46 @@ let USER_ID = null;
 let selectedMonth = null;
 let selectedYear = null;
 
-/* ================= INIT APP ================= */
+/* ---------- INIT APP ---------- */
 window.onload = async () => {
   await initUser();
-  setCurrentMonth();
+  setCurrentPeriod();
 };
 
-/* ================= INIT USER ================= */
+/* ---------- INIT USER ---------- */
 async function initUser() {
-  const res = await fetch(`${API}/init-user`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API}/init-user`);
+    const data = await res.json();
 
-  USER_ID = data.id;
+    USER_ID = data.id;
 
-  if (!USER_ID) {
-    alert('No se pudo inicializar el usuario');
+    if (!USER_ID) {
+      alert('No se pudo inicializar el usuario');
+    }
+  } catch (err) {
+    alert('Error conectando con el servidor');
   }
 }
 
-/* ================= MES ACTUAL (21 → 20) ================= */
-function setCurrentMonth() {
+/* ---------- PERÍODO ACTUAL (21 → 20) ---------- */
+function setCurrentPeriod() {
   const now = new Date();
   let month = now.getMonth() + 1;
   let year = now.getFullYear();
 
   if (now.getDate() <= 20) {
-    month--;
+    month -= 1;
     if (month === 0) {
       month = 12;
-      year--;
+      year -= 1;
     }
   }
 
   selectMonth(month, year);
 }
 
-/* ================= SELECCIONAR MES ================= */
+/* ---------- SELECCIONAR MES ---------- */
 function selectMonth(month, year) {
   selectedMonth = month;
   selectedYear = year;
@@ -51,20 +55,19 @@ function selectMonth(month, year) {
     );
   });
 
-  cargarDashboard();
+  cargarResumen();
 }
 
-/* ================= BOTONES MESES ================= */
+/* ---------- BOTONES MESES ---------- */
 document.querySelectorAll('.mes-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    selectMonth(
-      Number(btn.dataset.month),
-      new Date().getFullYear()
-    );
+    const month = Number(btn.dataset.month);
+    const year = new Date().getFullYear();
+    selectMonth(month, year);
   });
 });
 
-/* ================= GUARDAR HORAS ================= */
+/* ---------- GUARDAR HORAS ---------- */
 async function guardarHoras() {
   const date = document.getElementById('date').value;
   const start = document.getElementById('start').value;
@@ -76,7 +79,7 @@ async function guardarHoras() {
     return;
   }
 
-  await fetch(`${API}/add-hours`, {
+  const res = await fetch(`${API}/add-hours`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -88,52 +91,60 @@ async function guardarHoras() {
     })
   });
 
-  cargarDashboard();
+  if (!res.ok) {
+    alert('Error al guardar horas');
+    return;
+  }
+
+  cargarResumen();
 }
 
-/* ================= DASHBOARD + DETALLE ================= */
-async function cargarDashboard() {
-  if (!USER_ID || !selectedMonth || !selectedYear) return;
+/* ---------- CARGAR RESUMEN + DASHBOARD ---------- */
+async function cargarResumen() {
+  if (!selectedMonth || !selectedYear || !USER_ID) return;
 
   const res = await fetch(
-    `${API}/hours-by-month?year=${selectedYear}&month=${selectedMonth}`
+    `${API}/hours-by-month?year=${selectedYear}&month=${selectedMonth}&user_id=${USER_ID}`
   );
 
   const data = await res.json();
-  const registros = data.registros || [];
 
-  /* ----- TOTAL ----- */
+  /* DASHBOARD */
   document.getElementById('dash-total').innerText =
     `$${data.total.toFixed(2)}`;
 
-  /* ----- HORAS ----- */
+  const horas = calcularHoras(data.registros);
   document.getElementById('dash-hours').innerText =
-    `${calcularHoras(registros)} h`;
+    `${horas} h`;
 
-  /* ----- PERÍODO ----- */
+  const startLabel = `21/${String(selectedMonth).padStart(2, '0')}`;
+  const nextMonth = selectedMonth === 12 ? 1 : selectedMonth + 1;
   document.getElementById('dash-period').innerText =
-    `${String(selectedMonth).padStart(2, '0')}/${selectedYear}`;
+    `${startLabel} → 20/${String(nextMonth).padStart(2, '0')}`;
 
-  /* ----- DETALLE ----- */
+  /* DETALLE */
   let html = '';
 
-  registros.forEach(r => {
-    html += `
-      <div class="card">
-        📅 ${r.date}<br>
-        ⏰ ${r.start_time} - ${r.end_time}<br>
-        🏥 ${r.sector}<br>
-        💰 $${r.money.toFixed(2)}<br>
-        <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
-      </div>
-    `;
-  });
+  if (data.registros.length === 0) {
+    html = '<p>No hay horas cargadas en este período</p>';
+  } else {
+    data.registros.forEach(r => {
+      html += `
+        <div class="card">
+          📅 ${r.date}<br>
+          ⏰ ${r.start_time} - ${r.end_time}<br>
+          🏥 ${r.sector}<br>
+          💰 $${r.money.toFixed(2)}<br>
+          <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
+        </div>
+      `;
+    });
+  }
 
-  document.getElementById('resultado').innerHTML =
-    html || '<p>No hay horas cargadas</p>';
+  document.getElementById('resultado').innerHTML = html;
 }
 
-/* ================= CALCULAR HORAS ================= */
+/* ---------- CALCULAR HORAS ---------- */
 function calcularHoras(registros) {
   let total = 0;
 
@@ -151,10 +162,13 @@ function calcularHoras(registros) {
   return total.toFixed(1);
 }
 
-/* ================= BORRAR ================= */
+/* ---------- BORRAR HORA ---------- */
 async function borrarHora(id) {
   if (!confirm('¿Borrar esta hora?')) return;
 
-  await fetch(`${API}/delete-hour/${id}`, { method: 'DELETE' });
-  cargarDashboard();
+  await fetch(`${API}/delete-hour/${id}`, {
+    method: 'DELETE'
+  });
+
+  cargarResumen();
 }
