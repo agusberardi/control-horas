@@ -4,38 +4,37 @@ let USER_ID = null;
 let selectedMonth = null;
 
 /* ---------- INIT APP ---------- */
-window.addEventListener('DOMContentLoaded', async () => {
+window.onload = async () => {
   await initUser();
   setCurrentMonth();
-});
+};
 
 /* ---------- INIT USER ---------- */
 async function initUser() {
   try {
     const res = await fetch(`${API}/init-user`);
     const data = await res.json();
-
     USER_ID = data.id || data.user_id;
 
     if (!USER_ID) {
       alert('No se pudo inicializar el usuario');
     }
-  } catch (err) {
+  } catch {
     alert('Error conectando con el servidor');
   }
 }
 
-/* ---------- MES ACTUAL (REGLA 21 → 20) ---------- */
+/* ---------- MES ACTUAL ---------- */
 function setCurrentMonth() {
   const now = new Date();
   let month = now.getMonth() + 1;
   let year = now.getFullYear();
 
   if (now.getDate() <= 20) {
-    month -= 1;
+    month--;
     if (month === 0) {
       month = 12;
-      year -= 1;
+      year--;
     }
   }
 
@@ -59,25 +58,23 @@ function selectMonth(month, year) {
 /* ---------- BOTONES MESES ---------- */
 document.querySelectorAll('.mes-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const month = Number(btn.dataset.month);
-    const year = new Date().getFullYear();
-    selectMonth(month, year);
+    selectMonth(Number(btn.dataset.month), new Date().getFullYear());
   });
 });
 
 /* ---------- GUARDAR HORAS ---------- */
 async function guardarHoras() {
-  const date = document.getElementById('date').value;
-  const start = document.getElementById('start').value;
-  const end = document.getElementById('end').value;
-  const sector = document.getElementById('sector').value;
+  const date = dateInput.value;
+  const start = startInput.value;
+  const end = endInput.value;
+  const sector = sectorInput.value;
 
   if (!date || !start || !end || !sector) {
     alert('Completá todos los campos');
     return;
   }
 
-  const res = await fetch(`${API}/add-hours`, {
+  await fetch(`${API}/add-hours`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -89,11 +86,6 @@ async function guardarHoras() {
     })
   });
 
-  if (!res.ok) {
-    alert('Error al guardar horas');
-    return;
-  }
-
   cargarResumen();
 }
 
@@ -104,41 +96,42 @@ async function cargarResumen() {
   const { month, year } = selectedMonth;
 
   const res = await fetch(
-    `${API}/hours-by-month?year=${year}&month=${month}`
+    `${API}/hours-by-month?user_id=${USER_ID}&year=${year}&month=${month}`
   );
 
   const data = await res.json();
+  const registros = data.registros || [];
 
-  /* DASHBOARD */
+  /* ---------- DASHBOARD ---------- */
+  const totalHoras = calcularHoras(registros);
+  const totalDinero = registros.reduce((acc, r) => acc + r.money, 0);
+
   document.getElementById('dash-total').innerText =
-    `$${(data.total || 0).toFixed(2)}`;
+    `$${totalDinero.toFixed(2)}`;
 
   document.getElementById('dash-hours').innerText =
-    `${calcularHoras(data.registros || [])} h`;
+    `${totalHoras} h`;
 
   document.getElementById('dash-period').innerText =
     `${String(month).padStart(2, '0')}/${year}`;
 
-  /* DETALLE */
-  let html = '';
+  /* ---------- DETALLE ---------- */
+  const resultado = document.getElementById('resultado');
 
-  if (!data.registros || data.registros.length === 0) {
-    html = `<div class="card">No hay horas cargadas</div>`;
-  } else {
-    data.registros.forEach(r => {
-      html += `
-        <div class="card">
-          📅 ${r.date}<br>
-          ⏰ ${r.start_time} - ${r.end_time}<br>
-          🏥 ${r.sector}<br>
-          💰 $${r.money.toFixed(2)}<br>
-          <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
-        </div>
-      `;
-    });
+  if (registros.length === 0) {
+    resultado.innerHTML = '<p>No hay horas cargadas</p>';
+    return;
   }
 
-  document.getElementById('resultado').innerHTML = html;
+  resultado.innerHTML = registros.map(r => `
+    <div class="card">
+      📅 ${r.date}<br>
+      ⏰ ${r.start_time} - ${r.end_time}<br>
+      🏥 ${r.sector}<br>
+      💰 $${r.money.toFixed(2)}<br>
+      <button onclick="borrarHora(${r.id})">🗑 Borrar</button>
+    </div>
+  `).join('');
 }
 
 /* ---------- CALCULAR HORAS ---------- */
