@@ -1,105 +1,104 @@
-/* ================= CONFIG ================= */
-const API = 'https://control-horas-backend.onrender.com';
+const API = 'https://control-horas-backend.onrender.com'; // ajustá si cambia
 const USER_ID = 1;
 
-/* ================= ESTADO ================= */
-let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth() + 1;
+let selectedYear = new Date().getFullYear();
 
-/* ================= UTIL ================= */
-function formatMoney(n) {
-  return '$' + n.toFixed(0);
-}
-
-function calcularPeriodo(year, month) {
-  const start = `21/${month}`;
-  const endMonth = month === 12 ? 1 : month + 1;
-  return `${start} → 20/${endMonth}`;
-}
-
-/* ================= DASHBOARD ================= */
-async function cargarDashboard(year, month) {
-  try {
-    const res = await fetch(
-      `${API}/hours-by-month?year=${year}&month=${month}`
-    );
-
-    if (!res.ok) throw new Error('Error backend');
-
-    const data = await res.json();
-
-    // TOTAL
-    document.getElementById('totalMoney').innerText =
-      formatMoney(data.total || 0);
-
-    // HORAS
-    let horas = 0;
-    data.registros.forEach(r => {
-      if (r.start_time && r.end_time) {
-        const [sh, sm] = r.start_time.split(':').map(Number);
-        const [eh, em] = r.end_time.split(':').map(Number);
-        let start = sh * 60 + sm;
-        let end = eh * 60 + em;
-        if (end <= start) end += 1440;
-        horas += (end - start) / 60;
-      }
-    });
-
-    document.getElementById('totalHours').innerText =
-      horas ? horas.toFixed(1) + ' h' : '—';
-
-    // PERIODO
-    document.getElementById('periodo').innerText =
-      calcularPeriodo(year, month);
-
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo cargar el resumen');
-  }
-}
-
-/* ================= CAMBIO DE MES ================= */
+/* ---------- CAMBIAR MES ---------- */
 function cambiarMes(month) {
   selectedMonth = month;
-  cargarDashboard(selectedYear, selectedMonth);
+  cargarResumen();
 }
 
-/* ================= GUARDAR HORAS ================= */
+/* ---------- GUARDAR HORAS ---------- */
 async function guardarHoras() {
   const date = document.getElementById('date').value;
-  const start = document.getElementById('start').value;
-  const end = document.getElementById('end').value;
+  const start_time = document.getElementById('start').value;
+  const end_time = document.getElementById('end').value;
   const sector = document.getElementById('sector').value;
 
-  if (!date || !start || !end || !sector) {
+  if (!date || !start_time || !end_time || !sector) {
     alert('Completá todos los campos');
     return;
   }
 
-  const res = await fetch(`${API}/add-hours`, {
+  await fetch(`${API}/add-hours`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       user_id: USER_ID,
       date,
-      start_time: start,
-      end_time: end,
+      start_time,
+      end_time,
       sector
     })
   });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.error || 'Error al guardar');
-    return;
-  }
-
-  alert('Horas guardadas ✔️');
-  cargarDashboard(selectedYear, selectedMonth);
+  cargarResumen();
 }
 
-/* ================= INIT ================= */
-document.addEventListener('DOMContentLoaded', () => {
-  cargarDashboard(selectedYear, selectedMonth);
-});
+/* ---------- RESUMEN + DETALLE ---------- */
+async function cargarResumen() {
+  const res = await fetch(
+    `${API}/hours-by-month?year=${selectedYear}&month=${selectedMonth}`
+  );
+  const data = await res.json();
+
+  document.getElementById('totalMoney').textContent =
+    `$${data.total.toFixed(0)}`;
+
+  const totalHours = data.registros.reduce((sum, r) => {
+    const start = r.start_time.split(':');
+    const end = r.end_time.split(':');
+    let s = (+start[0] * 60) + +start[1];
+    let e = (+end[0] * 60) + +end[1];
+    if (e <= s) e += 1440;
+    return sum + (e - s) / 60;
+  }, 0);
+
+  document.getElementById('totalHours').textContent =
+    `${totalHours.toFixed(1)} h`;
+
+  const inicio = `${selectedMonth}/21`;
+  const fin = `${selectedMonth + 1}/20`;
+  document.getElementById('periodo').textContent = `${inicio} → ${fin}`;
+
+  renderDetalle(data.registros);
+}
+
+/* ---------- DETALLE ---------- */
+function renderDetalle(registros) {
+  const tbody = document.getElementById('detalleHoras');
+  tbody.innerHTML = '';
+
+  registros.forEach(r => {
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>${r.date}</td>
+      <td>${r.start_time}</td>
+      <td>${r.end_time}</td>
+      <td>${r.sector}</td>
+      <td>$${r.money.toFixed(0)}</td>
+      <td>
+        <button onclick="borrarHora(${r.id})">🗑</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- BORRAR ---------- */
+async function borrarHora(id) {
+  if (!confirm('¿Eliminar esta hora?')) return;
+
+  await fetch(`${API}/delete-hour/${id}`, {
+    method: 'DELETE'
+  });
+
+  cargarResumen();
+}
+
+/* ---------- INIT ---------- */
+cargarResumen();

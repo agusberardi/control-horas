@@ -130,3 +130,34 @@ button.secondary {
   color: white;
   border: none;
 }
+.tabla-horas {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.tabla-horas th,
+.tabla-horas td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.tabla-horas th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+.tabla-horas button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tabla-horas button:hover {
+  background: #dc2626;
+}
