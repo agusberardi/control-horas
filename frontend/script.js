@@ -91,6 +91,43 @@ async function verResumen() {
         <b>Total del mes:</b> $${data.total.toFixed(2)}
       </div>
     `;
+async function cargarDashboard() {
+  const userId = 1;
+
+  const res = await fetch(
+    `https://control-horas-backend.onrender.com/resumen?user_id=${userId}`
+  );
+
+  const data = await res.json();
+
+  // mes actual según regla 21→20
+  const hoy = new Date();
+  let year = hoy.getFullYear();
+  let month = hoy.getMonth() + 1;
+
+  if (hoy.getDate() <= 20) {
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+  }
+
+  const key = `${year}-${String(month).padStart(2, '0')}`;
+  const total = data[key] || 0;
+
+  document.getElementById('dash-total').innerText =
+    `$${Math.round(total)}`;
+
+  document.getElementById('dash-period').innerText =
+    `21/${month} → 20/${month === 12 ? 1 : month + 1}`;
+
+  // si querés horas reales después lo calculamos
+  document.getElementById('dash-hours').innerText =
+    '—';
+}
+
+cargarDashboard();
 
     // Totales por sector
     const porSector = {};
