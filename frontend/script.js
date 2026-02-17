@@ -5,8 +5,14 @@ let selectedMonth = new Date().getMonth() + 1;
 let selectedYear = new Date().getFullYear();
 
 /* ---------- CAMBIAR MES ---------- */
-function cambiarMes(month) {
+function cambiarMes(month, btn) {
   selectedMonth = month;
+
+  document.querySelectorAll('.mes-btn')
+    .forEach(b => b.classList.remove('activo'));
+
+  btn.classList.add('activo');
+
   cargarResumen();
 }
 
@@ -102,3 +108,11 @@ async function borrarHora(id) {
 
 /* ---------- INIT ---------- */
 cargarResumen();
+window.onload = () => {
+  const mesActual = new Date().getMonth() + 1;
+  const btn = document.querySelector(
+    `.mes-btn:nth-child(${mesActual})`
+  );
+  if (btn) btn.classList.add('activo');
+};
+

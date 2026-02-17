@@ -161,3 +161,21 @@ button.secondary {
 .tabla-horas button:hover {
   background: #dc2626;
 }
+.mes-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.mes-btn:hover {
+  background: #e5e7eb;
+}
+
+.mes-btn.activo {
+  background: #3b82f6;   /* celeste */
+  color: white;
+  border-color: #3b82f6;
+}
