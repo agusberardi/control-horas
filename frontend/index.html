@@ -4,81 +4,84 @@
   <meta charset="UTF-8" />
   <title>Control de Horas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="manifest" href="site.webmanifest">
 
-  <!-- Tipografía moderna -->
+  <!-- ICONOS -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <!-- FUENTE -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
+
 <body>
+
+<!-- DASHBOARD -->
 <section class="dashboard">
   <div class="card-dashboard">
     <span class="label">💰 Total</span>
-    <span class="value" id="dash-total">$0</span>
+    <span class="value" id="totalMoney">$0</span>
   </div>
 
   <div class="card-dashboard">
     <span class="label">⏱ Horas</span>
-    <span class="value" id="dash-hours">0 h</span>
+    <span class="value" id="totalHours">—</span>
   </div>
 
   <div class="card-dashboard">
     <span class="label">📅 Período</span>
-    <span class="value" id="dash-period">--</span>
+    <span class="value" id="periodo">--</span>
   </div>
 </section>
 
-  <div class="container">
-    <h1>🕒 Control de Horas</h1>
+<div class="container">
+  <h1>🕒 Control de Horas</h1>
 
-    <!-- BOTONES DE MESES -->
-    <div class="meses-container">
-      <button class="mes-btn" data-month="1">Ene</button>
-      <button class="mes-btn" data-month="2">Feb</button>
-      <button class="mes-btn" data-month="3">Mar</button>
-      <button class="mes-btn" data-month="4">Abr</button>
-      <button class="mes-btn" data-month="5">May</button>
-      <button class="mes-btn" data-month="6">Jun</button>
-      <button class="mes-btn" data-month="7">Jul</button>
-      <button class="mes-btn" data-month="8">Ago</button>
-      <button class="mes-btn" data-month="9">Sep</button>
-      <button class="mes-btn" data-month="10">Oct</button>
-      <button class="mes-btn" data-month="11">Nov</button>
-      <button class="mes-btn" data-month="12">Dic</button>
-    </div>
-
-    <!-- FORMULARIO -->
-    <label>Fecha</label>
-    <input type="date" id="date">
-
-    <label>Hora inicio</label>
-    <input type="time" id="start">
-
-    <label>Hora fin</label>
-    <input type="time" id="end">
-
-    <label>Sector</label>
-    <select id="sector">
-      <option value="">Seleccionar sector</option>
-      <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
-      <option value="Triage">Triage</option>
-    </select>
-
-    <button onclick="guardarHoras()">Guardar horas</button>
-
-    <div class="divider"></div>
-
-    <button class="secondary" onclick="verResumen()">Ver resumen del mes</button>
-
-    <div id="resultado"></div>
+  <!-- MESES -->
+  <div class="meses-container">
+    <button class="mes-btn" onclick="cambiarMes(1)">Ene</button>
+    <button class="mes-btn" onclick="cambiarMes(2)">Feb</button>
+    <button class="mes-btn" onclick="cambiarMes(3)">Mar</button>
+    <button class="mes-btn" onclick="cambiarMes(4)">Abr</button>
+    <button class="mes-btn" onclick="cambiarMes(5)">May</button>
+    <button class="mes-btn" onclick="cambiarMes(6)">Jun</button>
+    <button class="mes-btn" onclick="cambiarMes(7)">Jul</button>
+    <button class="mes-btn" onclick="cambiarMes(8)">Ago</button>
+    <button class="mes-btn" onclick="cambiarMes(9)">Sep</button>
+    <button class="mes-btn" onclick="cambiarMes(10)">Oct</button>
+    <button class="mes-btn" onclick="cambiarMes(11)">Nov</button>
+    <button class="mes-btn" onclick="cambiarMes(12)">Dic</button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- FORM -->
+  <label>Fecha</label>
+  <input type="date" id="date">
+
+  <label>Hora inicio</label>
+  <input type="time" id="start">
+
+  <label>Hora fin</label>
+  <input type="time" id="end">
+
+  <label>Sector</label>
+  <select id="sector">
+    <option value="">Seleccionar sector</option>
+    <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
+    <option value="Triage">Triage</option>
+  </select>
+
+  <button onclick="guardarHoras()">Guardar horas</button>
+
+  <div class="divider"></div>
+
+  <div id="resultado"></div>
+</div>
+
+<script src="script.js?v=3"></script>
 </body>
 </html>

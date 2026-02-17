@@ -1,28 +1,70 @@
-// ⚠️ URL DEL BACKEND EN RENDER
+/* ================= CONFIG ================= */
 const API = 'https://control-horas-backend.onrender.com';
 const USER_ID = 1;
 
-/* ---------- MES SELECCIONADO ---------- */
-let selectedMonth = null;
-const currentYear = new Date().getFullYear();
+/* ================= ESTADO ================= */
+let selectedYear = new Date().getFullYear();
+let selectedMonth = new Date().getMonth() + 1;
 
-/* ---------- BOTONES DE MESES ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  const botonesMes = document.querySelectorAll('.mes-btn');
+/* ================= UTIL ================= */
+function formatMoney(n) {
+  return '$' + n.toFixed(0);
+}
 
-  botonesMes.forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedMonth = btn.dataset.month.padStart(2, '0');
+function calcularPeriodo(year, month) {
+  const start = `21/${month}`;
+  const endMonth = month === 12 ? 1 : month + 1;
+  return `${start} → 20/${endMonth}`;
+}
 
-      botonesMes.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+/* ================= DASHBOARD ================= */
+async function cargarDashboard(year, month) {
+  try {
+    const res = await fetch(
+      `${API}/hours-by-month?year=${year}&month=${month}`
+    );
 
-      verResumen();
+    if (!res.ok) throw new Error('Error backend');
+
+    const data = await res.json();
+
+    // TOTAL
+    document.getElementById('totalMoney').innerText =
+      formatMoney(data.total || 0);
+
+    // HORAS
+    let horas = 0;
+    data.registros.forEach(r => {
+      if (r.start_time && r.end_time) {
+        const [sh, sm] = r.start_time.split(':').map(Number);
+        const [eh, em] = r.end_time.split(':').map(Number);
+        let start = sh * 60 + sm;
+        let end = eh * 60 + em;
+        if (end <= start) end += 1440;
+        horas += (end - start) / 60;
+      }
     });
-  });
-});
 
-/* ---------- GUARDAR HORAS ---------- */
+    document.getElementById('totalHours').innerText =
+      horas ? horas.toFixed(1) + ' h' : '—';
+
+    // PERIODO
+    document.getElementById('periodo').innerText =
+      calcularPeriodo(year, month);
+
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo cargar el resumen');
+  }
+}
+
+/* ================= CAMBIO DE MES ================= */
+function cambiarMes(month) {
+  selectedMonth = month;
+  cargarDashboard(selectedYear, selectedMonth);
+}
+
+/* ================= GUARDAR HORAS ================= */
 async function guardarHoras() {
   const date = document.getElementById('date').value;
   const start = document.getElementById('start').value;
@@ -34,161 +76,30 @@ async function guardarHoras() {
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/add-hours`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: USER_ID,
-        date,
-        start_time: start,
-        end_time: end,
-        sector
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || 'Error al guardar horas');
-      return;
-    }
-
-    alert(`Horas guardadas ✔️\n$${data.dinero.toFixed(2)}`);
-
-    // refresca resumen si hay mes seleccionado
-    if (selectedMonth) {
-      verResumen();
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo conectar con el servidor');
-  }
-}
-
-/* ---------- VER RESUMEN ---------- */
-async function verResumen() {
-  if (!selectedMonth) {
-    alert('Seleccioná un mes');
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `${API}/hours-by-month?year=${currentYear}&month=${selectedMonth}`
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || 'Error al obtener resumen');
-      return;
-    }
-
-    let html = `
-      <div class="card">
-        <b>Total del mes:</b> $${data.total.toFixed(2)}
-      </div>
-    `;
-async function cargarDashboard() {
-  const userId = 1;
-
-  const res = await fetch(
-    `https://control-horas-backend.onrender.com/resumen?user_id=${userId}`
-  );
+  const res = await fetch(`${API}/add-hours`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: USER_ID,
+      date,
+      start_time: start,
+      end_time: end,
+      sector
+    })
+  });
 
   const data = await res.json();
 
-  // mes actual según regla 21→20
-  const hoy = new Date();
-  let year = hoy.getFullYear();
-  let month = hoy.getMonth() + 1;
-
-  if (hoy.getDate() <= 20) {
-    month -= 1;
-    if (month === 0) {
-      month = 12;
-      year -= 1;
-    }
+  if (!res.ok) {
+    alert(data.error || 'Error al guardar');
+    return;
   }
 
-  const key = `${year}-${String(month).padStart(2, '0')}`;
-  const total = data[key] || 0;
-
-  document.getElementById('dash-total').innerText =
-    `$${Math.round(total)}`;
-
-  document.getElementById('dash-period').innerText =
-    `21/${month} → 20/${month === 12 ? 1 : month + 1}`;
-
-  // si querés horas reales después lo calculamos
-  document.getElementById('dash-hours').innerText =
-    '—';
+  alert('Horas guardadas ✔️');
+  cargarDashboard(selectedYear, selectedMonth);
 }
 
-cargarDashboard();
-
-    // Totales por sector
-    const porSector = {};
-    data.registros.forEach(r => {
-      porSector[r.sector] = (porSector[r.sector] || 0) + r.money;
-    });
-
-    for (const sector in porSector) {
-      html += `
-        <div class="card">
-          <b>${sector}</b>: $${porSector[sector].toFixed(2)}
-        </div>
-      `;
-    }
-
-    // Detalle de horas
-    data.registros.forEach(r => {
-      html += `
-        <div class="card">
-          📅 ${r.date}<br>
-          ⏰ ${r.start_time} - ${r.end_time}<br>
-          🏥 ${r.sector}<br>
-          💰 $${r.money.toFixed(2)}<br><br>
-
-          <button onclick="borrarHora(${r.id})"
-            style="background:#e53935;color:white;border:none;padding:8px 12px;border-radius:6px;">
-            🗑️ Borrar
-          </button>
-        </div>
-      `;
-    });
-
-    document.getElementById('resultado').innerHTML = html;
-
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo conectar con el servidor');
-  }
-}
-
-/* ---------- BORRAR HORA ---------- */
-async function borrarHora(id) {
-  if (!confirm('¿Seguro que querés borrar esta hora?')) return;
-
-  try {
-    const res = await fetch(`${API}/delete-hour/${id}`, {
-      method: 'DELETE'
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || 'Error al borrar');
-      return;
-    }
-
-    alert('Hora borrada ✔️');
-    verResumen();
-
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo conectar con el servidor');
-  }
-}
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', () => {
+  cargarDashboard(selectedYear, selectedMonth);
+});
