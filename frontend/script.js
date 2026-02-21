@@ -77,10 +77,10 @@ async function cargarDashboard() {
   const key = `${selectedMonth.year}-${String(selectedMonth.month).padStart(2, '0')}`;
   const total = resumen[key] || 0;
 
-  document.getElementById('dash-total').innerText = `$${total.toFixed(0)}`;
-  document.getElementById('dash-hours').innerText = total > 0 ? '✔' : '—';
-  document.getElementById('dash-period').innerText =
-    `${selectedMonth.month}/${selectedMonth.year}`;
+  document.getElementById('totalMoney').innerText = `$${total.toFixed(0)}`;
+document.getElementById('totalHours').innerText = total > 0 ? '✔' : '—';
+document.getElementById('periodo').innerText =
+  `${selectedMonth.month}/${selectedMonth.year}`;
 
   cargarDetalle();
 }
