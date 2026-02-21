@@ -120,7 +120,7 @@ app.get('/resumen', async (req, res) => {
   res.json(resumen);
 });
 
-/* ---------- RESUMEN MES (21 → 20) + USUARIO ---------- */
+/* ---------- ✅ DETALLE CORREGIDO 21 → 20 ---------- */
 app.get('/hours-by-month', async (req, res) => {
   const { year, month, user_id } = req.query;
 
@@ -128,17 +128,22 @@ app.get('/hours-by-month', async (req, res) => {
     return res.status(400).json({ error: 'Parámetros incompletos' });
   }
 
-  const start = `${year}-${String(month).padStart(2, '0')}-21`;
+  const y = Number(year);
+  const m = Number(month);
 
-  const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
-  const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
+  // 🔥 el período de FEBRERO es:
+  // 21 ENERO → 20 FEBRERO
 
-  const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-20`;
+  const prevMonth = m === 1 ? 12 : m - 1;
+  const prevYear = m === 1 ? y - 1 : y;
+
+  const start = `${prevYear}-${String(prevMonth).padStart(2, '0')}-21`;
+  const end = `${y}-${String(m).padStart(2, '0')}-20`;
 
   const { data, error } = await supabase
     .from('hours')
     .select('*')
-    .eq('user_id', user_id)   // 🔴 ESTA ERA LA CLAVE
+    .eq('user_id', user_id)
     .gte('date', start)
     .lte('date', end)
     .order('date', { ascending: true });
