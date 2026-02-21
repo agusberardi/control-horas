@@ -82,7 +82,7 @@ app.post('/add-hours', async (req, res) => {
   res.json({ dinero: money });
 });
 
-/* ---------- ✅ RESUMEN CORREGIDO 21 → 20 ---------- */
+/* ---------- ✅ RESUMEN CON HORAS + DINERO ---------- */
 app.get('/resumen', async (req, res) => {
   const { user_id } = req.query;
 
@@ -92,7 +92,7 @@ app.get('/resumen', async (req, res) => {
 
   const { data, error } = await supabase
     .from('hours')
-    .select('date, money')
+    .select('date, money, start_time, end_time')
     .eq('user_id', user_id);
 
   if (error) return res.status(500).json(error);
@@ -104,7 +104,7 @@ app.get('/resumen', async (req, res) => {
     let year = fecha.getFullYear();
     let month = fecha.getMonth() + 1;
 
-    // 🔥 regla correcta 21 → 20
+    // regla 21 → 20
     if (fecha.getDate() >= 21) {
       month += 1;
       if (month === 13) {
@@ -114,7 +114,23 @@ app.get('/resumen', async (req, res) => {
     }
 
     const key = `${year}-${String(month).padStart(2, '0')}`;
-    resumen[key] = (resumen[key] || 0) + r.money;
+
+    // calcular horas reales
+    const [sh, sm] = r.start_time.split(':').map(Number);
+    const [eh, em] = r.end_time.split(':').map(Number);
+
+    let startM = sh * 60 + sm;
+    let endM = eh * 60 + em;
+    if (endM <= startM) endM += 1440;
+
+    const hours = (endM - startM) / 60;
+
+    if (!resumen[key]) {
+      resumen[key] = { money: 0, hours: 0 };
+    }
+
+    resumen[key].money += r.money;
+    resumen[key].hours += hours;
   });
 
   res.json(resumen);

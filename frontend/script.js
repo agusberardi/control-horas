@@ -74,11 +74,14 @@ async function cargarDashboard() {
   }
 
   const key = `${selectedMonth.year}-${String(selectedMonth.month).padStart(2, '0')}`;
-  const total = resumen[key] || 0;
+  const dataMes = resumen[key] || { money: 0, hours: 0 };
 
   // ✅ IDs alineados con tu HTML
-  document.getElementById('totalMoney').innerText = `$${total.toFixed(0)}`;
-  document.getElementById('totalHours').innerText = total > 0 ? '✔' : '—';
+  document.getElementById('totalMoney').innerText =
+  `$${dataMes.money.toFixed(0)}`;
+
+document.getElementById('totalHours').innerText =
+  `${dataMes.hours.toFixed(1)} h`;
   document.getElementById('periodo').innerText =
     `${selectedMonth.month}/${selectedMonth.year}`;
 
