@@ -82,7 +82,7 @@ app.post('/add-hours', async (req, res) => {
   res.json({ dinero: money });
 });
 
-/* ---------- ✅ RESUMEN AUTOMÁTICO 21 → 20 (EL QUE FALTABA) ---------- */
+/* ---------- ✅ RESUMEN CORREGIDO 21 → 20 ---------- */
 app.get('/resumen', async (req, res) => {
   const { user_id } = req.query;
 
@@ -104,12 +104,12 @@ app.get('/resumen', async (req, res) => {
     let year = fecha.getFullYear();
     let month = fecha.getMonth() + 1;
 
-    // regla 21 → 20
-    if (fecha.getDate() <= 20) {
-      month -= 1;
-      if (month === 0) {
-        month = 12;
-        year -= 1;
+    // 🔥 regla correcta 21 → 20
+    if (fecha.getDate() >= 21) {
+      month += 1;
+      if (month === 13) {
+        month = 1;
+        year += 1;
       }
     }
 
