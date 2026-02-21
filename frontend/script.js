@@ -25,13 +25,12 @@ async function initUser() {
   USER_ID = data.id;
 }
 
-/* ---------- MES ACTUAL ---------- */
+/* ---------- MES ACTUAL (Regla 21 → 20) ---------- */
 function seleccionarMesActual() {
   const hoy = new Date();
   let month = hoy.getMonth() + 1;
   let year = hoy.getFullYear();
 
-  // Regla 21 → 20
   if (hoy.getDate() <= 20) {
     month--;
     if (month === 0) {
@@ -77,10 +76,11 @@ async function cargarDashboard() {
   const key = `${selectedMonth.year}-${String(selectedMonth.month).padStart(2, '0')}`;
   const total = resumen[key] || 0;
 
+  // ✅ IDs alineados con tu HTML
   document.getElementById('totalMoney').innerText = `$${total.toFixed(0)}`;
-document.getElementById('totalHours').innerText = total > 0 ? '✔' : '—';
-document.getElementById('periodo').innerText =
-  `${selectedMonth.month}/${selectedMonth.year}`;
+  document.getElementById('totalHours').innerText = total > 0 ? '✔' : '—';
+  document.getElementById('periodo').innerText =
+    `${selectedMonth.month}/${selectedMonth.year}`;
 
   cargarDetalle();
 }
@@ -103,30 +103,38 @@ async function cargarDetalle() {
 
   let html = '';
 
-  data.registros.forEach(r => {
-    html += `
-      <div class="card">
-        📅 ${r.date}<br>
-        ⏰ ${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}<br>
-        🏥 ${r.sector}<br>
-        💰 $${r.money.toFixed(0)}<br>
-        <button onclick="borrarHora(${r.id})">🗑</button>
-      </div>
-    `;
-  });
+  if (data.registros && data.registros.length > 0) {
+    data.registros.forEach(r => {
+      html += `
+        <div class="card">
+          📅 ${r.date}<br>
+          ⏰ ${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}<br>
+          🏥 ${r.sector}<br>
+          💰 $${r.money.toFixed(0)}<br>
+          <button onclick="borrarHora(${r.id})">🗑</button>
+        </div>
+      `;
+    });
+  } else {
+    html = '<p>No hay horas cargadas</p>';
+  }
 
-  document.getElementById('resultado').innerHTML =
-    html || '<p>No hay horas cargadas</p>';
+  document.getElementById('resultado').innerHTML = html;
 }
 
 /* ---------- GUARDAR ---------- */
 async function guardarHoras() {
   if (!USER_ID) return;
 
-  const date = dateInput.value;
-  const start = startInput.value;
-  const end = endInput.value;
-  const sector = sectorInput.value;
+  const date = document.getElementById('date').value;
+  const start = document.getElementById('start').value;
+  const end = document.getElementById('end').value;
+  const sector = document.getElementById('sector').value;
+
+  if (!date || !start || !end || !sector) {
+    alert("Completa todos los campos");
+    return;
+  }
 
   const res = await fetch(`${API}/add-hours`, {
     method: 'POST',
