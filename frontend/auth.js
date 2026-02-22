@@ -14,7 +14,7 @@ async function initUser() {
     return;
   }
 
-  USER_ID = user.id;
+  UUSER_ID = 1;
 
   document.getElementById("auth-container").style.display = "none";
   document.getElementById("app").style.display = "block";
