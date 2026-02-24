@@ -6,7 +6,7 @@ const app = express();
 
 /* ---------- SUPABASE ---------- */
 const supabaseUrl = 'https://kslcypddazdiqnvnubrx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I';
+const supabaseKey = process.env.SUPABASE_KEY; // 🔥 NO dejes la key hardcodeada
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ---------- MIDDLEWARE ---------- */
@@ -16,27 +16,6 @@ app.use(express.json());
 /* ---------- HEALTH ---------- */
 app.get('/', (req, res) => {
   res.send('Backend Supabase OK');
-});
-
-/* ---------- INIT USER ---------- */
-app.get('/init-user', async (req, res) => {
-  const { data: user } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', 1)
-    .single();
-
-  if (user) return res.json(user);
-
-  const { data, error } = await supabase
-    .from('users')
-    .insert({ name: 'Agustin', pago_hora: 309 })
-    .select()
-    .single();
-
-  if (error) return res.status(500).json(error);
-
-  res.json(data);
 });
 
 /* ---------- ADD HOURS ---------- */
@@ -50,14 +29,18 @@ app.post('/add-hours', async (req, res) => {
   const [sh, sm] = start_time.split(':').map(Number);
   const [eh, em] = end_time.split(':').map(Number);
 
+  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) {
+    return res.status(400).json({ error: 'Formato de hora inválido' });
+  }
+
   let startM = sh * 60 + sm;
   let endM = eh * 60 + em;
   if (endM <= startM) endM += 1440;
 
   const hours = (endM - startM) / 60;
 
-  const PAGO_POR_HORA = 309; // fijo por ahora
-const money = hours * PAGO_POR_HORA;
+  const PAGO_POR_HORA = 309;
+  const money = hours * PAGO_POR_HORA;
 
   const { error } = await supabase
     .from('hours')
@@ -75,7 +58,7 @@ const money = hours * PAGO_POR_HORA;
   res.json({ dinero: money });
 });
 
-/* ---------- ✅ RESUMEN CON HORAS + DINERO ---------- */
+/* ---------- RESUMEN (21 → 20) ---------- */
 app.get('/resumen', async (req, res) => {
   const { user_id } = req.query;
 
@@ -85,7 +68,7 @@ app.get('/resumen', async (req, res) => {
 
   const { data, error } = await supabase
     .from('hours')
-    .select('date, money, start_time, end_time')
+    .select('*')
     .eq('user_id', user_id);
 
   if (error) return res.status(500).json(error);
@@ -93,7 +76,8 @@ app.get('/resumen', async (req, res) => {
   const resumen = {};
 
   data.forEach(r => {
-    const fecha = new Date(r.date);
+    const fecha = new Date(r.date + "T00:00:00");
+
     let year = fecha.getFullYear();
     let month = fecha.getMonth() + 1;
 
@@ -108,7 +92,6 @@ app.get('/resumen', async (req, res) => {
 
     const key = `${year}-${String(month).padStart(2, '0')}`;
 
-    // calcular horas reales
     const [sh, sm] = r.start_time.split(':').map(Number);
     const [eh, em] = r.end_time.split(':').map(Number);
 
@@ -129,7 +112,7 @@ app.get('/resumen', async (req, res) => {
   res.json(resumen);
 });
 
-/* ---------- ✅ DETALLE CORREGIDO 21 → 20 ---------- */
+/* ---------- DETALLE MES (21 → 20) ---------- */
 app.get('/hours-by-month', async (req, res) => {
   const { year, month, user_id } = req.query;
 
@@ -140,8 +123,9 @@ app.get('/hours-by-month', async (req, res) => {
   const y = Number(year);
   const m = Number(month);
 
-  // 🔥 el período de FEBRERO es:
-  // 21 ENERO → 20 FEBRERO
+  if (isNaN(y) || isNaN(m)) {
+    return res.status(400).json({ error: 'Año o mes inválido' });
+  }
 
   const prevMonth = m === 1 ? 12 : m - 1;
   const prevYear = m === 1 ? y - 1 : y;
@@ -157,9 +141,7 @@ app.get('/hours-by-month', async (req, res) => {
     .lte('date', end)
     .order('date', { ascending: true });
 
-  if (error) {
-    return res.status(500).json(error);
-  }
+  if (error) return res.status(500).json(error);
 
   const total = data.reduce((sum, h) => sum + h.money, 0);
 
@@ -168,7 +150,6 @@ app.get('/hours-by-month', async (req, res) => {
     registros: data
   });
 });
-
 
 /* ---------- DELETE ---------- */
 app.delete('/delete-hour/:id', async (req, res) => {
