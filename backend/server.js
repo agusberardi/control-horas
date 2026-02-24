@@ -56,15 +56,8 @@ app.post('/add-hours', async (req, res) => {
 
   const hours = (endM - startM) / 60;
 
-  const { data: user } = await supabase
-    .from('users')
-    .select('pago_hora')
-    .eq('id', user_id)
-    .single();
-
-  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-
-  const money = hours * user.pago_hora;
+  const PAGO_POR_HORA = 309; // fijo por ahora
+const money = hours * PAGO_POR_HORA;
 
   const { error } = await supabase
     .from('hours')
