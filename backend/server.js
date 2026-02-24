@@ -6,7 +6,12 @@ const app = express();
 
 /* ---------- SUPABASE ---------- */
 const supabaseUrl = 'https://kslcypddazdiqnvnubrx.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY; // 🔥 NO dejes la key hardcodeada
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseKey) {
+  console.error("❌ FALTA SUPABASE_KEY en variables de entorno");
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ---------- MIDDLEWARE ---------- */
@@ -16,6 +21,20 @@ app.use(express.json());
 /* ---------- HEALTH ---------- */
 app.get('/', (req, res) => {
   res.send('Backend Supabase OK');
+});
+
+/* ---------- DEBUG HOURS (separado y correcto) ---------- */
+app.get('/debug-hours', async (req, res) => {
+  const { user_id } = req.query;
+
+  const { data, error } = await supabase
+    .from('hours')
+    .select('*')
+    .eq('user_id', user_id);
+
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 });
 
 /* ---------- ADD HOURS ---------- */
@@ -38,7 +57,6 @@ app.post('/add-hours', async (req, res) => {
   if (endM <= startM) endM += 1440;
 
   const hours = (endM - startM) / 60;
-
   const PAGO_POR_HORA = 309;
   const money = hours * PAGO_POR_HORA;
 
@@ -81,7 +99,6 @@ app.get('/resumen', async (req, res) => {
     let year = fecha.getFullYear();
     let month = fecha.getMonth() + 1;
 
-    // regla 21 → 20
     if (fecha.getDate() >= 21) {
       month += 1;
       if (month === 13) {
@@ -123,10 +140,6 @@ app.get('/hours-by-month', async (req, res) => {
   const y = Number(year);
   const m = Number(month);
 
-  if (isNaN(y) || isNaN(m)) {
-    return res.status(400).json({ error: 'Año o mes inválido' });
-  }
-
   const prevMonth = m === 1 ? 12 : m - 1;
   const prevYear = m === 1 ? y - 1 : y;
 
@@ -145,10 +158,7 @@ app.get('/hours-by-month', async (req, res) => {
 
   const total = data.reduce((sum, h) => sum + h.money, 0);
 
-  res.json({
-    total,
-    registros: data
-  });
+  res.json({ total, registros: data });
 });
 
 /* ---------- DELETE ---------- */
