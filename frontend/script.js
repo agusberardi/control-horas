@@ -1,10 +1,16 @@
 const API = 'https://control-horas-backend.onrender.com';
-
+let USER_ID = null;
 let selectedMonth = null;
 
 window.onload = async () => {
   await initUser();
-  seleccionarMesActual();
+
+  const { data } = await client.auth.getUser();
+
+  if (data.user) {
+    USER_ID = data.user.id;
+    seleccionarMesActual();
+  }
 };
 
 /* ---------- MES ACTUAL ---------- */
