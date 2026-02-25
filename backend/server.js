@@ -23,14 +23,11 @@ app.get('/', (req, res) => {
   res.send('Backend Supabase OK');
 });
 
-/* ---------- DEBUG HOURS (separado y correcto) ---------- */
+/* ---------- DEBUG HOURS ---------- */
 app.get('/debug-hours', async (req, res) => {
-  const { user_id } = req.query;
-
   const { data, error } = await supabase
     .from('hours')
-    .select('*')
-    .eq('user_id', user_id);
+    .select('*');
 
   if (error) return res.status(500).json(error);
 
@@ -40,6 +37,8 @@ app.get('/debug-hours', async (req, res) => {
 /* ---------- ADD HOURS ---------- */
 app.post('/add-hours', async (req, res) => {
   const { user_id, date, start_time, end_time, sector } = req.body;
+
+  console.log("ADD HOURS USER_ID:", user_id);
 
   if (!user_id || !date || !start_time || !end_time || !sector) {
     return res.status(400).json({ error: 'Datos incompletos' });
@@ -80,6 +79,8 @@ app.post('/add-hours', async (req, res) => {
 app.get('/resumen', async (req, res) => {
   const { user_id } = req.query;
 
+  console.log("RESUMEN USER_ID:", user_id);
+
   if (!user_id) {
     return res.status(400).json({ error: 'user_id requerido' });
   }
@@ -90,6 +91,10 @@ app.get('/resumen', async (req, res) => {
     .eq('user_id', user_id);
 
   if (error) return res.status(500).json(error);
+
+  if (!data || data.length === 0) {
+    return res.json({});
+  }
 
   const resumen = {};
 
@@ -132,6 +137,8 @@ app.get('/resumen', async (req, res) => {
 /* ---------- DETALLE MES (21 → 20) ---------- */
 app.get('/hours-by-month', async (req, res) => {
   const { year, month, user_id } = req.query;
+
+  console.log("HOURS-BY-MONTH USER_ID:", user_id);
 
   if (!year || !month || !user_id) {
     return res.status(400).json({ error: 'Parámetros incompletos' });
