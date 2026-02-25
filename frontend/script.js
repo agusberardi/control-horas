@@ -72,7 +72,6 @@ async function cargarDetalle() {
   );
 
   const data = await res.json();
-
   let html = '';
 
   if (data.registros && data.registros.length > 0) {
@@ -83,7 +82,7 @@ async function cargarDetalle() {
           ⏰ ${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}<br>
           🏥 ${r.sector}<br>
           💰 $${r.money.toFixed(0)}<br>
-          <button onclick="borrarHora(${r.id})">🗑</button>
+          <button data-id="${r.id}">🗑</button>
         </div>
       `;
     });
@@ -96,7 +95,10 @@ async function cargarDetalle() {
 
 /* ---------- GUARDAR ---------- */
 async function guardarHoras() {
-  if (!USER_ID) return;
+  if (!USER_ID) {
+    alert("Usuario no identificado");
+    return;
+  }
 
   const date = document.getElementById('date').value;
   const start = document.getElementById('start').value;
@@ -115,11 +117,47 @@ async function guardarHoras() {
     })
   });
 
-  await res.json();
-  cargarDashboard();
+  console.log("STATUS:", res.status);
+
+  const text = await res.text();
+  console.log("RESPUESTA RAW:", text);
+
+  if (res.ok) {
+    mostrarMensajeExito();
+    limpiarCampos();
+    cargarDashboard();
+  } else {
+    alert("Error backend");
+  }
 }
 
-/* ---------- BORRAR ---------- */
+/* ---------- MENSAJE DE ÉXITO ---------- */
+function mostrarMensajeExito() {
+  const mensaje = document.getElementById('mensajeExito');
+  if (!mensaje) return;
+
+  mensaje.style.display = 'block';
+
+  setTimeout(() => {
+    mensaje.style.display = 'none';
+  }, 3000);
+}
+
+/* ---------- LIMPIAR CAMPOS ---------- */
+function limpiarCampos() {
+  document.getElementById('date').value = '';
+  document.getElementById('start').value = '';
+  document.getElementById('end').value = '';
+  document.getElementById('sector').value = '';
+}
+
+/* ---------- BORRAR (delegación de eventos) ---------- */
+document.getElementById('resultado').addEventListener('click', (e) => {
+  if (e.target.tagName === 'BUTTON' && e.target.dataset.id) {
+    borrarHora(e.target.dataset.id);
+  }
+});
+
 async function borrarHora(id) {
   await fetch(`${API}/delete-hour/${id}`, {
     method: 'DELETE'

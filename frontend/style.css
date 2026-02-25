@@ -179,3 +179,15 @@ button.secondary {
   color: white;
   border-color: #3b82f6;
 }
+/* ===== MENSAJE DE ÉXITO ===== */
+.mensaje-exito {
+  background-color: #d1fae5;   /* verde muy suave */
+  color: #065f46;              /* verde oscuro para texto */
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 12px;         /* coincide con tus tarjetas */
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: opacity 0.3s ease;
+}

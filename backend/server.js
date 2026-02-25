@@ -6,13 +6,11 @@ const app = express();
 
 /* ---------- SUPABASE ---------- */
 const supabaseUrl = 'https://kslcypddazdiqnvnubrx.supabase.co';
-const supabaseKey = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I;
 
-if (!supabaseKey) {
-  console.error("❌ FALTA SUPABASE_KEY en variables de entorno");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  supabaseUrl,
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I"
+);
 
 /* ---------- MIDDLEWARE ---------- */
 app.use(cors());
@@ -74,6 +72,10 @@ app.post('/add-hours', async (req, res) => {
 
   res.json({ dinero: money });
 });
+if (error) {
+  console.log("SUPABASE ERROR:", error);
+  return res.status(500).json(error);
+}
 
 /* ---------- RESUMEN (21 → 20) ---------- */
 app.get('/resumen', async (req, res) => {
