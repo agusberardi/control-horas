@@ -108,7 +108,9 @@ async function cargarDetalle() {
           <td>${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}</td>
           <td>${r.sector}</td>
           <td>${r.money.toFixed(0)}</td>
-          <td><button data-id="${r.id}">🗑</button></td>
+          <td>
+            <button class="btn-delete" data-id="${r.id}">🗑</button>
+           </td>
         </tr>
       `;
     });

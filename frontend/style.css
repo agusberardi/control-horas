@@ -214,3 +214,64 @@ button.secondary {
   opacity: 1;
   transform: translateY(0);
 }
+/* lo que ya tenías */
+
+body {
+  background: #f3f4f6;
+}
+
+/* ===== PEGAR DESDE ACÁ PARA ABAJO ===== */
+
+/* ===== TABLA DETALLE ===== */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  color: #555;
+  padding: 10px 15px;
+}
+
+tbody tr {
+  background: #ffffff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  border-radius: 8px;
+}
+
+tbody td {
+  padding: 14px 15px;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+tbody tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+tbody tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* ===== BOTÓN BORRAR ===== */
+
+.btn-delete {
+  background-color: #ef4444;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
