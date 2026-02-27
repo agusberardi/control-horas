@@ -1,96 +1,15 @@
 /* ===== RESET ===== */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 /* ===== BODY ===== */
 body {
   font-family: 'Inter', system-ui, Arial, sans-serif;
   background: #f3f4f6;
-  margin: 0;
   padding: 16px;
-}
-
-/* ===== DASHBOARD ===== */
-/* ===== DASHBOARD RESPONSIVE BIEN HECHO ===== */
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.card-dashboard {
-  background: #020617;
-  border-radius: 14px;
-  padding: 14px 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 85px;
-}
-
-.card-dashboard .label {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.card-dashboard .value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #e5e7eb;
-}
-
-.card-dashboard {
-  background: #020617;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  min-height: 70px;
-}
-
-.card-dashboard .label {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.card-dashboard .value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #e5e7eb;
-}
-
-/* ===== GRAFICO ===== */
-
-.grafico-container {
-  background: #0f172a;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-
-.grafico-container h3 {
-  color: #cbd5e1;
-  margin-bottom: 15px;
-  font-weight: 500;
-}
-
-#graficoMensual {
-  width: 100% !important;
-  max-height: 280px;
-}
-
-/* ===== TITULOS ===== */
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
 }
 
 /* ===== CONTAINER ===== */
@@ -99,14 +18,71 @@ h1 {
   margin: auto;
 }
 
-/* ===== INPUTS ===== */
+/* ===== TITULOS ===== */
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+.dashboard {
+  margin-bottom: 24px;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+/* Cards generales */
+.card-dashboard {
+  background: #020617;
+  border-radius: 16px;
+  padding: 16px 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.card-dashboard .label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.card-dashboard .value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+/* ===== GRAFICO ===== */
+
+.grafico-card canvas {
+  width: 100% !important;
+  height: 160px !important;
+  margin-top: 10px;
+}
+
+/* =====================================================
+   FORMULARIO
+===================================================== */
+
 label {
   font-weight: 500;
-  margin-top: 12px;
+  margin-top: 14px;
   display: block;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 12px;
   margin-top: 6px;
@@ -116,6 +92,7 @@ input, select {
 }
 
 /* ===== BOTONES ===== */
+
 button:not(.mes-btn) {
   width: 100%;
   padding: 12px;
@@ -126,19 +103,22 @@ button:not(.mes-btn) {
   color: white;
   font-weight: 600;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
-button.secondary {
-  background: #111827;
+button:not(.mes-btn):hover {
+  background: #1d4ed8;
 }
 
-/* ===== MESES ===== */
+/* =====================================================
+   MESES
+===================================================== */
 
 .meses-container {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 10px 0 20px 0;
+  margin: 12px 0 20px 0;
 }
 
 .mes-btn {
@@ -148,6 +128,7 @@ button.secondary {
   background: #f3f4f6;
   cursor: pointer;
   font-weight: 500;
+  transition: 0.2s ease;
 }
 
 .mes-btn:hover {
@@ -160,7 +141,9 @@ button.secondary {
   border-color: #3b82f6;
 }
 
-/* ===== MENSAJES ===== */
+/* =====================================================
+   MENSAJES
+===================================================== */
 
 .mensaje-exito {
   background-color: #d1fae5;
@@ -185,7 +168,9 @@ button.secondary {
   transform: translateY(0);
 }
 
-/* ===== DETALLE CARD ===== */
+/* =====================================================
+   DETALLE
+===================================================== */
 
 .detalle-card {
   background: white;
@@ -194,8 +179,6 @@ button.secondary {
   margin-top: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
-
-/* ===== TABLA DETALLE ===== */
 
 .tabla-horas {
   width: 100%;
@@ -235,34 +218,33 @@ button.secondary {
 .btn-delete:hover {
   background-color: #dc2626;
 }
-.grafico-card {
-  display: flex;
-  flex-direction: column;
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.grafico-card canvas {
-  margin-top: 10px;
-  height: 160px !important;
-}
-/* ===== MOBILE OPTIMIZADO ===== */
+/* Celular */
 @media (max-width: 600px) {
-
   body {
     padding: 12px;
   }
 
-  .dashboard {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .dashboard-cards {
+    grid-template-columns: 1fr;
   }
 
   .card-dashboard {
-    min-height: 75px;
-    padding: 10px;
+    min-height: 90px;
   }
 
   .card-dashboard .value {
-    font-size: 18px;
+    font-size: 20px;
   }
-
 }
