@@ -275,18 +275,27 @@ tbody tr td:last-child {
 .btn-delete:hover {
   background-color: #dc2626;
 }
+/* ===== Mejora visual detalle de horas ===== */
+
 #resultado table {
-  width: 100% !important;
-  border-collapse: separate !important;
-  border-spacing: 0 10px !important;
+  width: 100%;
+  border-collapse: collapse;
 }
 
-#resultado tbody tr {
-  background: #ffffff !important;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05) !important;
-  border-radius: 8px !important;
+#resultado th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  color: #444;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-#resultado tbody td {
-  padding: 14px 15px !important;
+#resultado td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+#resultado tr:hover {
+  background-color: #f9fafb;
+  transition: background 0.2s ease;
 }
