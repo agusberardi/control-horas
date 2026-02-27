@@ -191,3 +191,26 @@ button.secondary {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: opacity 0.3s ease;
 }
+/* ===== MENSAJE DE ÉXITO MEJORADO ===== */
+.mensaje-exito {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 12px;
+  margin-top: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.oculto {
+  opacity: 0;
+  transform: translateY(-5px);
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -38,6 +38,17 @@ document.querySelectorAll('.mes-btn').forEach(btn => {
 
 function seleccionarMes(month, year) {
   selectedMonth = { month, year };
+
+  // quitar clase activo de todos
+  document.querySelectorAll('.mes-btn').forEach(btn => {
+    btn.classList.remove('activo');
+  });
+
+  // marcar el seleccionado
+  document
+    .querySelector(`.mes-btn[data-month="${month}"]`)
+    ?.classList.add('activo');
+
   cargarDashboard();
 }
 
@@ -75,17 +86,36 @@ async function cargarDetalle() {
   let html = '';
 
   if (data.registros && data.registros.length > 0) {
+    html = `
+      <table class="tabla-horas">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Horario</th>
+            <th>Sector</th>
+            <th>$</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
     data.registros.forEach(r => {
       html += `
-        <div class="card">
-          📅 ${r.date}<br>
-          ⏰ ${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}<br>
-          🏥 ${r.sector}<br>
-          💰 $${r.money.toFixed(0)}<br>
-          <button data-id="${r.id}">🗑</button>
-        </div>
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.start_time.slice(0,5)} - ${r.end_time.slice(0,5)}</td>
+          <td>${r.sector}</td>
+          <td>${r.money.toFixed(0)}</td>
+          <td><button data-id="${r.id}">🗑</button></td>
+        </tr>
       `;
     });
+
+    html += `
+        </tbody>
+      </table>
+    `;
   } else {
     html = '<p>No hay horas cargadas</p>';
   }
@@ -117,11 +147,6 @@ async function guardarHoras() {
     })
   });
 
-  console.log("STATUS:", res.status);
-
-  const text = await res.text();
-  console.log("RESPUESTA RAW:", text);
-
   if (res.ok) {
     mostrarMensajeExito();
     limpiarCampos();
@@ -136,10 +161,12 @@ function mostrarMensajeExito() {
   const mensaje = document.getElementById('mensajeExito');
   if (!mensaje) return;
 
-  mensaje.style.display = 'block';
+  mensaje.classList.remove('oculto');
+  mensaje.classList.add('visible');
 
   setTimeout(() => {
-    mensaje.style.display = 'none';
+    mensaje.classList.remove('visible');
+    mensaje.classList.add('oculto');
   }, 3000);
 }
 
@@ -151,7 +178,7 @@ function limpiarCampos() {
   document.getElementById('sector').value = '';
 }
 
-/* ---------- BORRAR (delegación de eventos) ---------- */
+/* ---------- BORRAR ---------- */
 document.getElementById('resultado').addEventListener('click', (e) => {
   if (e.target.tagName === 'BUTTON' && e.target.dataset.id) {
     borrarHora(e.target.dataset.id);
