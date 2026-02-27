@@ -299,3 +299,36 @@ tbody tr td:last-child {
   background-color: #f9fafb;
   transition: background 0.2s ease;
 }
+/* ===== CARD MODERNA DETALLE ===== */
+
+.detalle-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* tabla limpia dentro de la card */
+.tabla-horas {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-horas th {
+  text-align: left;
+  padding: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabla-horas td {
+  padding: 12px 10px;
+  font-size: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tabla-horas tbody tr:hover {
+  background-color: #f9fafb;
+}
