@@ -275,3 +275,18 @@ tbody tr td:last-child {
 .btn-delete:hover {
   background-color: #dc2626;
 }
+#resultado table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 10px !important;
+}
+
+#resultado tbody tr {
+  background: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05) !important;
+  border-radius: 8px !important;
+}
+
+#resultado tbody td {
+  padding: 14px 15px !important;
+}
