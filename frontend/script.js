@@ -59,6 +59,7 @@ async function cargarDashboard() {
 
   const res = await fetch(`${API}/resumen?user_id=${USER_ID}`);
   const resumen = await res.json();
+  generarGraficoDesdeResumen(resumen);
 
   const key = `${selectedMonth.year}-${String(selectedMonth.month).padStart(2, '0')}`;
   const dataMes = resumen[key] || { money: 0, hours: 0 };

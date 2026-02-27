@@ -39,6 +39,12 @@
       <span class="label">📅 Período</span>
       <span class="value" id="periodo">--</span>
     </div>
+
+    <div class="dashboard-card grafica-card">
+  <h3>📊 Ingresos por mes</h3>
+  <canvas id="graficoMensual"></canvas>
+</div>
+
   </section>
 
   <div class="container">
@@ -84,7 +90,7 @@
 <p id="mensajeBorrado" class="mensaje-exito oculto">
   🗑 Hora eliminada correctamente
 </p>
-    <h2>Detalle</h2>
+    <h2>Detalle de Horas</h2>
 <div class="detalle-card">
   <div id="resultado"></div>
 </div>
@@ -96,6 +102,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="auth.js"></script>
 <script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 </html>

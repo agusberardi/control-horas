@@ -332,3 +332,16 @@ tbody tr td:last-child {
 .tabla-horas tbody tr:hover {
   background-color: #f9fafb;
 }
+.grafica-card {
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.grafica-card h3 {
+  color: #cbd5e1;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
