@@ -10,32 +10,30 @@ body {
   margin: 0;
   padding: 16px;
 }
-.dashboard {
+.dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
-.card-dashboard {
-  background: #020617;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.card {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-.card-dashboard .label {
-  font-size: 14px;
-  color: #94a3b8;
+.card h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  opacity: 0.8;
 }
 
-.card-dashboard .value {
-  font-size: 26px;
+.card .valor {
+  font-size: 28px;
   font-weight: bold;
-  color: #e5e7eb;
 }
 
 /* ===== TITULOS ===== */
@@ -344,4 +342,14 @@ tbody tr td:last-child {
   color: #cbd5e1;
   margin-bottom: 15px;
   font-weight: 500;
+}
+#graficoMensual {
+  max-height: 280px;
+  width: 100% !important;
+}
+.grafico-container {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
 }
