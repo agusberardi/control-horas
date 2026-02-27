@@ -1,7 +1,9 @@
 alert("ESTA ES LA VERSION CORRECTA");
+
 const API = 'https://control-horas-backend.onrender.com';
 let USER_ID = null;
 let selectedMonth = null;
+let graficoMensualInstance = null;
 
 window.onload = async () => {
   await initUser();
@@ -40,12 +42,10 @@ document.querySelectorAll('.mes-btn').forEach(btn => {
 function seleccionarMes(month, year) {
   selectedMonth = { month, year };
 
-  // quitar clase activo de todos
   document.querySelectorAll('.mes-btn').forEach(btn => {
     btn.classList.remove('activo');
   });
 
-  // marcar el seleccionado
   document
     .querySelector(`.mes-btn[data-month="${month}"]`)
     ?.classList.add('activo');
@@ -59,6 +59,8 @@ async function cargarDashboard() {
 
   const res = await fetch(`${API}/resumen?user_id=${USER_ID}`);
   const resumen = await res.json();
+
+  // 🔥 GENERAR GRÁFICO
   generarGraficoDesdeResumen(resumen);
 
   const key = `${selectedMonth.year}-${String(selectedMonth.month).padStart(2, '0')}`;
@@ -74,6 +76,57 @@ async function cargarDashboard() {
     `${selectedMonth.month}/${selectedMonth.year}`;
 
   cargarDetalle();
+}
+
+/* ---------- GRÁFICO ---------- */
+function generarGraficoDesdeResumen(resumen) {
+  const ctx = document.getElementById("graficoMensual");
+  if (!ctx) return;
+
+  const labels = [];
+  const data = [];
+
+  Object.keys(resumen)
+    .sort()
+    .forEach(key => {
+      labels.push(key);
+      data.push(resumen[key].money);
+    });
+
+  // destruir gráfico anterior si existe
+  if (graficoMensualInstance) {
+    graficoMensualInstance.destroy();
+  }
+
+  graficoMensualInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Ingresos por mes",
+        data: data,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#ffffff"
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: "#ffffff" }
+        },
+        y: {
+          ticks: { color: "#ffffff" }
+        }
+      }
+    }
+  });
 }
 
 /* ---------- DETALLE ---------- */
@@ -111,7 +164,7 @@ async function cargarDetalle() {
           <td>${r.money.toFixed(0)}</td>
           <td>
             <button class="btn-delete" data-id="${r.id}">🗑</button>
-           </td>
+          </td>
         </tr>
       `;
     });
@@ -160,7 +213,7 @@ async function guardarHoras() {
   }
 }
 
-/* ---------- MENSAJE DE ÉXITO ---------- */
+/* ---------- MENSAJES ---------- */
 function mostrarMensajeExito() {
   const mensaje = document.getElementById('mensajeExito');
   if (!mensaje) return;
@@ -173,6 +226,7 @@ function mostrarMensajeExito() {
     mensaje.classList.add('oculto');
   }, 3000);
 }
+
 function mostrarMensajeBorrado() {
   const mensaje = document.getElementById('mensajeBorrado');
   if (!mensaje) return;
@@ -186,7 +240,7 @@ function mostrarMensajeBorrado() {
   }, 3000);
 }
 
-/* ---------- LIMPIAR CAMPOS ---------- */
+/* ---------- LIMPIAR ---------- */
 function limpiarCampos() {
   document.getElementById('date').value = '';
   document.getElementById('start').value = '';
