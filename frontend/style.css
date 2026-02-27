@@ -9,7 +9,7 @@
 body {
   font-family: 'Inter', system-ui, Arial, sans-serif;
   background: #f3f4f6;
-  padding: 16px;
+  padding: 19px;
 }
 
 /* ===== CONTAINER ===== */
@@ -52,13 +52,13 @@ h1 {
 }
 
 .card-dashboard .label {
-  font-size: 13px;
+  font-size: 16px;
   color: #94a3b8;
-  margin-bottom: 6px;
+  margin-bottom: 9px;
 }
 
 .card-dashboard .value {
-  font-size: 22px;
+  font-size: 25px;
   font-weight: 700;
   color: #e5e7eb;
 }
