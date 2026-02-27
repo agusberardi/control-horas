@@ -46,7 +46,7 @@ h1 {
 
 /* ===== CONTAINER ===== */
 .container {
-  max-width: 420px;
+  max-width: 900px;   /* antes 420px */
   margin: auto;
 }
 
