@@ -25,6 +25,9 @@
 <div id="app" style="display:none;">
 
   <section class="dashboard">
+
+  <!-- CARDS SUPERIORES -->
+  <div class="dashboard-cards">
     <div class="card-dashboard">
       <span class="label">💰 Total</span>
       <span class="value" id="totalMoney">$0</span>
@@ -39,13 +42,15 @@
       <span class="label">📅 Período</span>
       <span class="value" id="periodo">--</span>
     </div>
+  </div>
 
-    <div class="dashboard-card grafica-card">
-  <h3>📊 Ingresos por mes</h3>
-  <canvas id="graficoMensual"></canvas>
-</div>
+  <!-- GRAFICO DEBAJO -->
+  <div class="grafico-container">
+    <h3>📊 Ingresos por mes</h3>
+    <canvas id="graficoMensual"></canvas>
+  </div>
 
-  </section>
+</section>
 
   <div class="container">
     <h1>🕒 Control de Horas</h1>
