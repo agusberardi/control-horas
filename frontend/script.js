@@ -1,3 +1,4 @@
+console.log("FRONT VERSION 9999");
 const API = 'https://control-horas-backend.onrender.com';
 let USER_ID = null;
 let selectedMonth = null;
