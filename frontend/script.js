@@ -170,6 +170,18 @@ function mostrarMensajeExito() {
     mensaje.classList.add('oculto');
   }, 3000);
 }
+function mostrarMensajeBorrado() {
+  const mensaje = document.getElementById('mensajeBorrado');
+  if (!mensaje) return;
+
+  mensaje.classList.remove('oculto');
+  mensaje.classList.add('visible');
+
+  setTimeout(() => {
+    mensaje.classList.remove('visible');
+    mensaje.classList.add('oculto');
+  }, 3000);
+}
 
 /* ---------- LIMPIAR CAMPOS ---------- */
 function limpiarCampos() {
@@ -187,9 +199,14 @@ document.getElementById('resultado').addEventListener('click', (e) => {
 });
 
 async function borrarHora(id) {
-  await fetch(`${API}/delete-hour/${id}`, {
+  const res = await fetch(`${API}/delete-hour/${id}`, {
     method: 'DELETE'
   });
 
-  cargarDashboard();
+  if (res.ok) {
+    mostrarMensajeBorrado();
+    cargarDashboard();
+  } else {
+    alert("Error al borrar");
+  }
 }
