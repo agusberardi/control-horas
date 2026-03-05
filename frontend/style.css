@@ -110,6 +110,24 @@ button:not(.mes-btn):hover {
   background: #1d4ed8;
 }
 
+.btn-logout {
+  width: auto !important;
+  padding: 7px 12px !important;
+  margin-top: 8px !important;
+  margin-left: auto;
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  background: #64748b !important;
+  border-radius: 8px !important;
+  opacity: 0.9;
+}
+
+.btn-logout:hover {
+  background: #475569 !important;
+  opacity: 1;
+}
+
 /* =====================================================
    MESES
 ===================================================== */
