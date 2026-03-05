@@ -1,6 +1,4 @@
-alert("ESTA ES LA VERSION CORRECTA");
-
-const API = 'https://control-horas-backend.onrender.com';
+const API = `${window.location.protocol}//${window.location.hostname}:3001`;
 let USER_ID = null;
 let selectedMonth = null;
 let graficoMensualInstance = null;

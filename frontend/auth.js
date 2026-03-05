@@ -5,6 +5,23 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const client = createClient(supabaseUrl, supabaseKey);
 
+document.addEventListener("DOMContentLoaded", () => {
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+
+  if (!emailInput || !passwordInput) return;
+
+  const handleEnterLogin = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      login();
+    }
+  };
+
+  emailInput.addEventListener("keydown", handleEnterLogin);
+  passwordInput.addEventListener("keydown", handleEnterLogin);
+});
+
 // INICIALIZAR
 async function initUser() {
   const { data: { session } } = await client.auth.getSession();

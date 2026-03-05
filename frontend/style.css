@@ -51,14 +51,14 @@ h1 {
   min-height: 100px;
 }
 
-.card-dashboard .label {
+.card-dashboard:not(.grafico-card) .label {
   font-size: 16px;
   color: #94a3b8;
   margin-bottom: 9px;
 }
 
-.card-dashboard .value {
-  font-size: 25px;
+.card-dashboard:not(.grafico-card) .value {
+  font-size: 30px;
   font-weight: 700;
   color: #e5e7eb;
 }

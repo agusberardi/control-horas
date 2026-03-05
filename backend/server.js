@@ -73,10 +73,6 @@ app.post('/add-hours', async (req, res) => {
 
   res.json({ dinero: money });
 });
-if (error) {
-  console.log("SUPABASE ERROR:", error);
-  return res.status(500).json(error);
-}
 
 /* ---------- RESUMEN (21 → 20) ---------- */
 app.get('/resumen', async (req, res) => {
