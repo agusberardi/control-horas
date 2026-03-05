@@ -237,7 +237,7 @@ button:not(.mes-btn):hover {
   }
 
   .dashboard-cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .card-dashboard {
