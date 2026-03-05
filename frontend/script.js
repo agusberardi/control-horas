@@ -296,7 +296,7 @@ async function borrarHora(id) {
 /* ---------- MENU LATERAL ---------- */
 function initSideFeatures() {
   const menuButtons = document.querySelectorAll(".side-menu-btn");
-  const panels = document.querySelectorAll(".menu-panel");
+  const panels = document.querySelectorAll(".side-view");
 
   menuButtons.forEach((btn) => {
     btn.addEventListener("click", () => {

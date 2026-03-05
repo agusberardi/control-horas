@@ -116,8 +116,12 @@ h1 {
   margin-top: 10px;
 }
 
-.menu-panels {
-  margin-bottom: 18px;
+.side-view {
+  display: none;
+}
+
+.side-view.active {
+  display: block;
 }
 
 .menu-panel {
@@ -126,6 +130,7 @@ h1 {
   border-radius: 14px;
   padding: 14px;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  margin-bottom: 18px;
 }
 
 .menu-panel.active {

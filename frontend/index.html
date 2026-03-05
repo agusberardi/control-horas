@@ -26,39 +26,90 @@
   <div class="app-layout">
     <aside class="side-menu">
       <h3>Menú</h3>
-      <button class="side-menu-btn active" data-panel="perfil">Perfil</button>
+      <button class="side-menu-btn active" data-panel="inicio">Inicio</button>
+      <button class="side-menu-btn" data-panel="perfil">Perfil</button>
       <button class="side-menu-btn" data-panel="calendario">Calendario</button>
       <button class="side-menu-btn" data-panel="recibos">Recibos</button>
     </aside>
 
     <main class="app-main">
-      <section class="dashboard">
-        <div class="dashboard-cards">
-          <div class="card-dashboard">
-            <span class="label">💰 Total</span>
-            <span class="value" id="totalMoney">$0</span>
+      <section id="panel-inicio" class="side-view active">
+        <section class="dashboard">
+          <div class="dashboard-cards">
+            <div class="card-dashboard">
+              <span class="label">💰 Total</span>
+              <span class="value" id="totalMoney">$0</span>
+            </div>
+
+            <div class="card-dashboard">
+              <span class="label">⏱ Horas</span>
+              <span class="value" id="totalHours">—</span>
+            </div>
+
+            <div class="card-dashboard">
+              <span class="label">📅 Período</span>
+              <span class="value" id="periodo">--</span>
+            </div>
+
+            <!-- GRAFICO COMO CARD -->
+            <div class="card-dashboard grafico-card">
+              <span class="label">📊 Ingresos por mes</span>
+              <canvas id="graficoMensual"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <div class="container">
+          <h1>🕒 Control de Horas</h1>
+
+          <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+
+          <div class="meses-container">
+            <button class="mes-btn" data-month="1">Ene</button>
+            <button class="mes-btn" data-month="2">Feb</button>
+            <button class="mes-btn" data-month="3">Mar</button>
+            <button class="mes-btn" data-month="4">Abr</button>
+            <button class="mes-btn" data-month="5">May</button>
+            <button class="mes-btn" data-month="6">Jun</button>
+            <button class="mes-btn" data-month="7">Jul</button>
+            <button class="mes-btn" data-month="8">Ago</button>
+            <button class="mes-btn" data-month="9">Sep</button>
+            <button class="mes-btn" data-month="10">Oct</button>
+            <button class="mes-btn" data-month="11">Nov</button>
+            <button class="mes-btn" data-month="12">Dic</button>
           </div>
 
-          <div class="card-dashboard">
-            <span class="label">⏱ Horas</span>
-            <span class="value" id="totalHours">—</span>
-          </div>
+          <label>Fecha</label>
+          <input type="date" id="date">
 
-          <div class="card-dashboard">
-            <span class="label">📅 Período</span>
-            <span class="value" id="periodo">--</span>
-          </div>
+          <label>Hora inicio</label>
+          <input type="time" id="start">
 
-          <!-- GRAFICO COMO CARD -->
-          <div class="card-dashboard grafico-card">
-            <span class="label">📊 Ingresos por mes</span>
-            <canvas id="graficoMensual"></canvas>
+          <label>Hora fin</label>
+          <input type="time" id="end">
+
+          <label>Sector</label>
+          <select id="sector">
+            <option value="">Seleccionar sector</option>
+            <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
+            <option value="Triage">Triage</option>
+          </select>
+
+          <button onclick="guardarHoras()">Guardar horas</button>
+          <p id="mensajeExito" class="mensaje-exito oculto">
+            ✅ Hora guardada correctamente
+          </p>
+          <p id="mensajeBorrado" class="mensaje-exito oculto">
+            🗑 Hora eliminada correctamente
+          </p>
+          <h2>Detalle de Horas</h2>
+          <div class="detalle-card">
+            <div id="resultado"></div>
           </div>
         </div>
       </section>
 
-      <section class="menu-panels">
-        <div id="panel-perfil" class="menu-panel active">
+      <section id="panel-perfil" class="menu-panel side-view">
           <h3>Perfil</h3>
           <label>Dirección</label>
           <input type="text" id="profileAddress" placeholder="Ej: Calle 123, Ciudad">
@@ -70,70 +121,20 @@
           <input type="date" id="profileBirthDate">
 
           <button id="saveProfileBtn" type="button">Guardar perfil</button>
-        </div>
+      </section>
 
-        <div id="panel-calendario" class="menu-panel">
+      <section id="panel-calendario" class="menu-panel side-view">
           <h3>Calendario</h3>
           <p class="panel-help">Los días trabajados se marcan en naranja.</p>
           <div id="workCalendar" class="work-calendar"></div>
-        </div>
+      </section>
 
-        <div id="panel-recibos" class="menu-panel">
+      <section id="panel-recibos" class="menu-panel side-view">
           <h3>Recibos</h3>
           <label>Agregar PDF o foto</label>
           <input type="file" id="receiptInput" accept=".pdf,image/*" multiple>
           <div id="receiptList" class="receipt-list"></div>
-        </div>
       </section>
-
-      <div class="container">
-        <h1>🕒 Control de Horas</h1>
-
-        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
-
-        <div class="meses-container">
-          <button class="mes-btn" data-month="1">Ene</button>
-          <button class="mes-btn" data-month="2">Feb</button>
-          <button class="mes-btn" data-month="3">Mar</button>
-          <button class="mes-btn" data-month="4">Abr</button>
-          <button class="mes-btn" data-month="5">May</button>
-          <button class="mes-btn" data-month="6">Jun</button>
-          <button class="mes-btn" data-month="7">Jul</button>
-          <button class="mes-btn" data-month="8">Ago</button>
-          <button class="mes-btn" data-month="9">Sep</button>
-          <button class="mes-btn" data-month="10">Oct</button>
-          <button class="mes-btn" data-month="11">Nov</button>
-          <button class="mes-btn" data-month="12">Dic</button>
-        </div>
-
-        <label>Fecha</label>
-        <input type="date" id="date">
-
-        <label>Hora inicio</label>
-        <input type="time" id="start">
-
-        <label>Hora fin</label>
-        <input type="time" id="end">
-
-        <label>Sector</label>
-        <select id="sector">
-          <option value="">Seleccionar sector</option>
-          <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
-          <option value="Triage">Triage</option>
-        </select>
-
-        <button onclick="guardarHoras()">Guardar horas</button>
-        <p id="mensajeExito" class="mensaje-exito oculto">
-          ✅ Hora guardada correctamente
-        </p>
-        <p id="mensajeBorrado" class="mensaje-exito oculto">
-          🗑 Hora eliminada correctamente
-        </p>
-        <h2>Detalle de Horas</h2>
-        <div class="detalle-card">
-          <div id="resultado"></div>
-        </div>
-      </div>
     </main>
   </div>
 </div>
