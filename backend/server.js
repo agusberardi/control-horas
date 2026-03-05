@@ -167,6 +167,38 @@ app.get('/hours-by-month', async (req, res) => {
   res.json({ total, registros: data });
 });
 
+/* ---------- CALENDARIO (MES NATURAL) ---------- */
+app.get('/hours-by-calendar-month', async (req, res) => {
+  const { year, month, user_id } = req.query;
+
+  if (!year || !month || !user_id) {
+    return res.status(400).json({ error: 'Parámetros incompletos' });
+  }
+
+  const y = Number(year);
+  const m = Number(month);
+
+  if (Number.isNaN(y) || Number.isNaN(m) || m < 1 || m > 12) {
+    return res.status(400).json({ error: 'Mes o año inválido' });
+  }
+
+  const start = `${y}-${String(m).padStart(2, '0')}-01`;
+  const lastDay = new Date(y, m, 0).getDate();
+  const end = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+  const { data, error } = await supabase
+    .from('hours')
+    .select('*')
+    .eq('user_id', user_id)
+    .gte('date', start)
+    .lte('date', end)
+    .order('date', { ascending: true });
+
+  if (error) return res.status(500).json(error);
+
+  res.json({ registros: data });
+});
+
 /* ---------- DELETE ---------- */
 app.delete('/delete-hour/:id', async (req, res) => {
   const { error } = await supabase

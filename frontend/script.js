@@ -20,12 +20,15 @@ let USER_ID = null;
 let selectedMonth = null;
 let graficoMensualInstance = null;
 let currentMonthRegistros = [];
+let calendarView = null;
+let calendarWorkedDays = new Set();
 
 const PROFILE_STORAGE_PREFIX = "controlHorasPerfil:";
 const RECEIPT_STORAGE_PREFIX = "controlHorasRecibos:";
 
 window.onload = async () => {
   initSideFeatures();
+  initCalendarControls();
   await initUser();
 
   const { data } = await client.auth.getUser();
@@ -35,6 +38,7 @@ window.onload = async () => {
     loadProfile();
     loadReceipts();
     seleccionarMesActual();
+    refreshCalendarFromControls();
   }
 };
 
@@ -72,7 +76,6 @@ function seleccionarMes(month, year) {
     .querySelector(`.mes-btn[data-month="${month}"]`)
     ?.classList.add('activo');
 
-  renderCalendar();
   cargarDashboard();
 }
 
@@ -233,6 +236,7 @@ async function guardarHoras() {
     mostrarMensajeExito();
     limpiarCampos();
     cargarDashboard();
+    refreshCalendarFromControls();
   } else {
     alert("Error backend");
   }
@@ -288,6 +292,7 @@ async function borrarHora(id) {
   if (res.ok) {
     mostrarMensajeBorrado();
     cargarDashboard();
+    refreshCalendarFromControls();
   } else {
     alert("Error al borrar");
   }
@@ -307,12 +312,31 @@ function initSideFeatures() {
 
       btn.classList.add("active");
       document.getElementById(`panel-${target}`)?.classList.add("active");
+
+      if (target === "calendario") {
+        refreshCalendarFromControls();
+      }
     });
   });
 
   document.getElementById("saveProfileBtn")?.addEventListener("click", saveProfile);
   document.getElementById("receiptInput")?.addEventListener("change", handleReceiptUpload);
   document.getElementById("receiptList")?.addEventListener("click", handleReceiptDelete);
+}
+
+function initCalendarControls() {
+  const monthSelect = document.getElementById("calendarMonthSelect");
+  const yearInput = document.getElementById("calendarYearInput");
+
+  if (!monthSelect || !yearInput) return;
+
+  const today = new Date();
+  monthSelect.value = String(today.getMonth() + 1);
+  yearInput.value = String(today.getFullYear());
+
+  document.getElementById("calendarApplyBtn")?.addEventListener("click", refreshCalendarFromControls);
+  monthSelect.addEventListener("change", refreshCalendarFromControls);
+  yearInput.addEventListener("change", refreshCalendarFromControls);
 }
 
 /* ---------- PERFIL ---------- */
@@ -348,22 +372,13 @@ function loadProfile() {
 /* ---------- CALENDARIO ---------- */
 function renderCalendar() {
   const container = document.getElementById("workCalendar");
-  if (!container || !selectedMonth) return;
+  if (!container || !calendarView) return;
 
-  const year = selectedMonth.year;
-  const monthIndex = selectedMonth.month - 1;
+  const year = calendarView.year;
+  const monthIndex = calendarView.month - 1;
   const firstDay = new Date(year, monthIndex, 1).getDay();
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
   const weekdays = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
-  const workedDays = new Set(
-    currentMonthRegistros
-      .filter((r) => {
-        const d = new Date(`${r.date}T00:00:00`);
-        return d.getFullYear() === year && d.getMonth() === monthIndex;
-      })
-      .map((r) => Number(r.date.slice(8, 10)))
-  );
 
   let html = "";
 
@@ -376,11 +391,38 @@ function renderCalendar() {
   }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    const workedClass = workedDays.has(day) ? "worked" : "";
+    const workedClass = calendarWorkedDays.has(day) ? "worked" : "";
     html += `<div class="cal-day ${workedClass}">${day}</div>`;
   }
 
   container.innerHTML = html;
+}
+
+async function refreshCalendarFromControls() {
+  if (!USER_ID) return;
+
+  const monthSelect = document.getElementById("calendarMonthSelect");
+  const yearInput = document.getElementById("calendarYearInput");
+
+  const month = Number(monthSelect?.value);
+  const year = Number(yearInput?.value);
+
+  if (!month || !year) return;
+
+  calendarView = { month, year };
+
+  try {
+    const res = await fetch(
+      `${API}/hours-by-calendar-month?user_id=${USER_ID}&year=${year}&month=${month}`
+    );
+    const data = await res.json();
+    calendarWorkedDays = new Set((data.registros || []).map((r) => Number(r.date.slice(8, 10))));
+  } catch (e) {
+    console.error("Error cargando calendario:", e);
+    calendarWorkedDays = new Set();
+  }
+
+  renderCalendar();
 }
 
 /* ---------- RECIBOS ---------- */

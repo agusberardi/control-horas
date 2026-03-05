@@ -30,6 +30,7 @@
       <button class="side-menu-btn" data-panel="perfil">Perfil</button>
       <button class="side-menu-btn" data-panel="calendario">Calendario</button>
       <button class="side-menu-btn" data-panel="recibos">Recibos</button>
+      <button class="btn-logout side-logout" onclick="logout()">Cerrar sesión</button>
     </aside>
 
     <main class="app-main">
@@ -61,8 +62,6 @@
 
         <div class="container">
           <h1>🕒 Control de Horas</h1>
-
-          <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
 
           <div class="meses-container">
             <button class="mes-btn" data-month="1">Ene</button>
@@ -126,6 +125,24 @@
       <section id="panel-calendario" class="menu-panel side-view">
           <h3>Calendario</h3>
           <p class="panel-help">Los días trabajados se marcan en naranja.</p>
+          <div class="calendar-controls">
+            <select id="calendarMonthSelect">
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+            <input type="number" id="calendarYearInput" min="2000" max="2100" placeholder="Año">
+            <button id="calendarApplyBtn" type="button">Ver</button>
+          </div>
           <div id="workCalendar" class="work-calendar"></div>
       </section>
 
