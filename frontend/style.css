@@ -23,6 +23,10 @@ body {
   min-width: 0;
 }
 
+.mobile-menu-toggle {
+  display: none;
+}
+
 .side-menu {
   position: sticky;
   top: 12px;
@@ -443,30 +447,61 @@ button:not(.mes-btn):hover {
   }
 
   .app-layout {
-    grid-template-columns: 78px 1fr;
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
-  .side-menu {
-    padding: 8px;
+  .mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-top: 0 !important;
+    padding: 0 !important;
+    font-size: 24px;
+    line-height: 1;
     border-radius: 10px;
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+    position: sticky;
+    top: 8px;
+    z-index: 1201;
+  }
+
+  .side-menu {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: min(78vw, 270px);
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    padding: 12px;
+    border-radius: 10px;
+    z-index: 1200;
+    transform: translateX(-120%);
+    transition: transform 0.2s ease;
+  }
+
+  .side-menu.mobile-open {
+    transform: translateX(0);
   }
 
   .side-menu h3 {
-    display: none;
+    display: block;
   }
 
   .side-menu-btn {
-    text-align: center;
-    font-size: 11px;
-    padding: 8px 4px !important;
+    text-align: left;
+    font-size: 14px;
+    padding: 9px 10px !important;
     margin-bottom: 6px;
     border-radius: 8px;
   }
 
   .side-logout {
-    font-size: 10px;
-    padding: 7px 4px !important;
+    font-size: 12px;
+    padding: 8px 10px !important;
   }
 
   .dashboard-cards {

@@ -24,17 +24,20 @@
 <!-- APP (OCULTA HASTA LOGIN) -->
 <div id="app" style="display:none;">
   <div class="app-layout">
+    <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false">
+      ☰
+    </button>
     <aside class="side-menu">
       <h3>Menú</h3>
-      <button class="side-menu-btn active" data-panel="inicio">Inicio</button>
+      <button class="side-menu-btn active" data-panel="calendario">Calendario</button>
+      <button class="side-menu-btn" data-panel="inicio">Detalles</button>
       <button class="side-menu-btn" data-panel="perfil">Perfil</button>
-      <button class="side-menu-btn" data-panel="calendario">Calendario</button>
       <button class="side-menu-btn" data-panel="recibos">Recibos</button>
       <button class="btn-logout side-logout" onclick="logout()">Cerrar sesión</button>
     </aside>
 
     <main class="app-main">
-      <section id="panel-inicio" class="side-view active">
+      <section id="panel-inicio" class="side-view">
         <section class="dashboard">
           <div class="dashboard-cards">
             <div class="card-dashboard">
@@ -122,7 +125,7 @@
           <button id="saveProfileBtn" type="button">Guardar perfil</button>
       </section>
 
-      <section id="panel-calendario" class="menu-panel side-view">
+      <section id="panel-calendario" class="menu-panel side-view active">
           <h3>Calendario</h3>
           <p class="panel-help">Los días trabajados se marcan en naranja.</p>
           <div class="calendar-controls">

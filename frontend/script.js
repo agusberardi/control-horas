@@ -302,6 +302,24 @@ async function borrarHora(id) {
 function initSideFeatures() {
   const menuButtons = document.querySelectorAll(".side-menu-btn");
   const panels = document.querySelectorAll(".side-view");
+  const sideMenu = document.querySelector(".side-menu");
+  const mobileMenuToggle = document.getElementById("mobileMenuToggle");
+
+  function closeMobileMenu() {
+    if (!sideMenu || !mobileMenuToggle) return;
+    sideMenu.classList.remove("mobile-open");
+    mobileMenuToggle.setAttribute("aria-expanded", "false");
+    mobileMenuToggle.setAttribute("aria-label", "Abrir menú");
+  }
+
+  function toggleMobileMenu() {
+    if (!sideMenu || !mobileMenuToggle) return;
+    const isOpen = sideMenu.classList.toggle("mobile-open");
+    mobileMenuToggle.setAttribute("aria-expanded", String(isOpen));
+    mobileMenuToggle.setAttribute("aria-label", isOpen ? "Cerrar menú" : "Abrir menú");
+  }
+
+  mobileMenuToggle?.addEventListener("click", toggleMobileMenu);
 
   menuButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -316,7 +334,26 @@ function initSideFeatures() {
       if (target === "calendario") {
         refreshCalendarFromControls();
       }
+
+      if (window.innerWidth <= 600) {
+        closeMobileMenu();
+      }
     });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (window.innerWidth > 600 || !sideMenu || !mobileMenuToggle) return;
+    const clickedInsideMenu = sideMenu.contains(event.target);
+    const clickedToggle = mobileMenuToggle.contains(event.target);
+    if (!clickedInsideMenu && !clickedToggle) {
+      closeMobileMenu();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 600) {
+      closeMobileMenu();
+    }
   });
 
   document.getElementById("saveProfileBtn")?.addEventListener("click", saveProfile);
