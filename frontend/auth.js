@@ -1,9 +1,17 @@
 const { createClient } = supabase;
 
 const supabaseUrl = "https://kslcypddazdiqnvnubrx.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I";
+const supabaseKey = "sb_publishable_BMTlXGKImkkM_MuhH1t83g_bhNDsctI";
 
 const client = createClient(supabaseUrl, supabaseKey);
+
+function notify(message, type = "error") {
+  if (typeof window.showToast === "function") {
+    window.showToast(message, type);
+    return;
+  }
+  alert(message);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("email");
@@ -46,7 +54,7 @@ async function login() {
   });
 
   if (error) {
-    alert(error.message);
+    notify(error.message, "error");
   } else {
     location.reload();
   }
@@ -63,9 +71,9 @@ async function register() {
   });
 
   if (error) {
-    alert(error.message);
+    notify(error.message, "error");
   } else {
-    alert("Cuenta creada");
+    notify("Cuenta creada. Revisá tu email para confirmar la cuenta.", "success");
   }
 }
 

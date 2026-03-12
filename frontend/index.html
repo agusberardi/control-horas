@@ -5,6 +5,9 @@
   <title>Control de Horas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,17 +15,26 @@
 
 <!-- LOGIN -->
 <div id="auth-container">
+  <p class="auth-kicker">Control de Horas</p>
   <h2>Iniciar sesión</h2>
+  <p class="auth-subtitle">Gestioná turnos, horas y recibos desde un solo lugar.</p>
 
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Contraseña">
-
-  <button onclick="login()">Entrar</button>
-  <button onclick="register()">Crear cuenta</button>
+  <div class="auth-form">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Entrar</button>
+    <button class="btn-secondary" onclick="register()">Crear cuenta</button>
+  </div>
 </div>
 
 <!-- APP (OCULTA HASTA LOGIN) -->
 <div id="app" style="display:none;">
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <div class="app-topbar">
+    <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Activar modo oscuro">
+      🌙 Modo oscuro
+    </button>
+  </div>
   <div class="app-layout">
     <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false">
       ☰
@@ -39,20 +51,30 @@
     <main class="app-main">
       <section id="panel-inicio" class="side-view">
         <section class="dashboard">
+          <div class="section-head">
+            <h2>Resumen mensual</h2>
+            <p>Visualizá tus ingresos, horas y evolución mensual.</p>
+          </div>
           <div class="dashboard-cards">
             <div class="card-dashboard">
               <span class="label">💰 Total</span>
               <span class="value" id="totalMoney">$0</span>
+              <p class="card-note">Calculado con la configuración actual del perfil.</p>
             </div>
 
             <div class="card-dashboard">
               <span class="label">⏱ Horas</span>
               <span class="value" id="totalHours">—</span>
+              <div class="hours-breakdown">
+                <span id="normalHours">— normales</span>
+                <span id="nightHours">— nocturnas</span>
+              </div>
             </div>
 
             <div class="card-dashboard">
               <span class="label">📅 Período</span>
               <span class="value" id="periodo">--</span>
+              <p class="card-note">Corte del 21 al 20 según la lógica actual.</p>
             </div>
 
             <!-- GRAFICO COMO CARD -->
@@ -64,7 +86,11 @@
         </section>
 
         <div class="container">
-          <h1>🕒 Control de Horas</h1>
+          <div class="section-head app-main-head">
+            <span class="head-badge">Panel principal</span>
+            <h1 class="app-title">🕒 Control de Horas</h1>
+            <p class="app-subtitle">Seleccioná el período y registrá tus horas trabajadas.</p>
+          </div>
 
           <div class="meses-container">
             <button class="mes-btn" data-month="1">Ene</button>
@@ -81,48 +107,138 @@
             <button class="mes-btn" data-month="12">Dic</button>
           </div>
 
-          <label>Fecha</label>
-          <input type="date" id="date">
+          <section class="form-card">
+            <h2>Cargar horas</h2>
 
-          <label>Hora inicio</label>
-          <input type="time" id="start">
+            <label>Fecha</label>
+            <input type="date" id="date">
 
-          <label>Hora fin</label>
-          <input type="time" id="end">
+            <div class="form-grid">
+              <div>
+                <label>Hora inicio</label>
+                <input type="time" id="start">
+              </div>
+              <div>
+                <label>Hora fin</label>
+                <input type="time" id="end">
+              </div>
+            </div>
 
-          <label>Sector</label>
-          <select id="sector">
-            <option value="">Seleccionar sector</option>
-            <option value="Urgencia Domiciliaria">Urgencia Domiciliaria</option>
-            <option value="Triage">Triage</option>
-          </select>
+            <label>Sector</label>
+            <select id="sector">
+              <option value="">Seleccionar sector</option>
+            </select>
 
-          <button onclick="guardarHoras()">Guardar horas</button>
-          <p id="mensajeExito" class="mensaje-exito oculto">
-            ✅ Hora guardada correctamente
-          </p>
-          <p id="mensajeBorrado" class="mensaje-exito oculto">
-            🗑 Hora eliminada correctamente
-          </p>
-          <h2>Detalle de Horas</h2>
-          <div class="detalle-card">
-            <div id="resultado"></div>
-          </div>
+            <button id="saveHoursBtn" type="button" onclick="guardarHoras()">Guardar horas</button>
+            <div class="detail-trigger-card">
+              <div>
+                <h3>Detalle de horas</h3>
+                <p id="detailSummaryText">Revisá tus registros sin ocupar toda la pantalla principal.</p>
+              </div>
+              <button id="openDetailModalBtn" class="btn-secondary" type="button">Ver detalle de horas</button>
+            </div>
+          </section>
         </div>
       </section>
 
       <section id="panel-perfil" class="menu-panel side-view">
-          <h3>Perfil</h3>
-          <label>Dirección</label>
-          <input type="text" id="profileAddress" placeholder="Ej: Calle 123, Ciudad">
+          <div class="profile-shell">
+            <div class="profile-user-card">
+              <div id="profileUserAvatar" class="profile-user-avatar" aria-hidden="true">U</div>
+              <div class="profile-user-meta">
+                <p class="profile-overline">Cuenta</p>
+                <h3 id="profileUserName">Usuario</h3>
+                <p id="profileUserEmail" class="panel-help">Sin email disponible</p>
+              </div>
+            </div>
 
-          <label>Teléfono</label>
-          <input type="tel" id="profilePhone" placeholder="Ej: +54 9 11 1234-5678">
+            <div class="profile-layout">
+              <div class="profile-main">
+                <div class="profile-section">
+                  <div class="profile-section-head">
+                    <p class="profile-overline">Perfil</p>
+                    <h4>Información personal</h4>
+                    <p class="panel-help">Completá tus datos básicos para mantener tu cuenta organizada.</p>
+                  </div>
 
-          <label>Fecha de nacimiento</label>
-          <input type="date" id="profileBirthDate">
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileAddress">Dirección</label>
+                      <input type="text" id="profileAddress" placeholder="Ej: Calle 123, Ciudad">
+                    </div>
 
-          <button id="saveProfileBtn" type="button">Guardar perfil</button>
+                    <div class="profile-field">
+                      <label for="profilePhone">Teléfono</label>
+                      <input type="tel" id="profilePhone" placeholder="Ej: +54 9 11 1234-5678">
+                    </div>
+
+                    <div class="profile-field profile-field-full">
+                      <label for="profileBirthDate">Fecha de nacimiento</label>
+                      <input type="date" id="profileBirthDate">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="profile-section">
+                  <div class="profile-section-head">
+                    <p class="profile-overline">Trabajo</p>
+                    <h4>Configuración laboral</h4>
+                    <p class="panel-help">Definí tus valores para que el cálculo de ingresos sea correcto.</p>
+                  </div>
+
+                  <div class="profile-fields">
+                    <div class="profile-field">
+                      <label for="profileHourlyRate">Valor por hora normal</label>
+                      <input type="number" id="profileHourlyRate" min="0" step="0.01" placeholder="Ingresá tu tarifa normal">
+                    </div>
+
+                    <div class="profile-field">
+                      <label for="profileHourlyRateNight">Valor por hora nocturno</label>
+                      <input type="number" id="profileHourlyRateNight" min="0" step="0.01" placeholder="Ingresá tu tarifa nocturna">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="profile-section">
+                  <div class="profile-section-head">
+                    <p class="profile-overline">Sectores</p>
+                    <h4>Sectores personalizados</h4>
+                    <p class="panel-help">Administrá los sectores disponibles para cargar y editar tus horas.</p>
+                  </div>
+
+                  <div class="sector-manager">
+                    <div class="sector-form">
+                      <div class="profile-field">
+                        <label for="newSectorName">Nuevo sector</label>
+                        <input type="text" id="newSectorName" maxlength="120" placeholder="Ej: Guardia Clínica">
+                      </div>
+                      <button id="addSectorBtn" type="button">Agregar sector</button>
+                    </div>
+                    <div id="sectorList" class="sector-list"></div>
+                  </div>
+                </div>
+
+                <button id="saveProfileBtn" type="button">Guardar perfil</button>
+              </div>
+
+              <aside class="profile-summary-card">
+                <p class="profile-overline">Resumen</p>
+                <h4>Configuración laboral</h4>
+                <p class="panel-help">Vista rápida de los valores activos en tu perfil.</p>
+
+                <div class="profile-summary-grid">
+                  <div class="profile-summary-item">
+                    <span class="profile-summary-label">Valor hora normal</span>
+                    <strong id="currentHourlyRate" class="profile-summary-value">No definido</strong>
+                  </div>
+                  <div class="profile-summary-item">
+                    <span class="profile-summary-label">Valor hora nocturna</span>
+                    <strong id="currentHourlyRateNight" class="profile-summary-value">No definido</strong>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
       </section>
 
       <section id="panel-calendario" class="menu-panel side-view active">
@@ -147,10 +263,41 @@
             <button id="calendarApplyBtn" type="button">Ver</button>
           </div>
           <div id="workCalendar" class="work-calendar"></div>
+
+          <section id="calendarQuickForm" class="calendar-quick-form hidden">
+            <div class="calendar-quick-head">
+              <h4>Cargar horas del día</h4>
+              <p id="calendarQuickDateLabel">--/--/----</p>
+            </div>
+
+            <input type="hidden" id="calendarQuickDateIso">
+
+            <div class="calendar-quick-grid">
+              <div>
+                <label for="calendarQuickStart">Hora inicio</label>
+                <input type="time" id="calendarQuickStart">
+              </div>
+              <div>
+                <label for="calendarQuickEnd">Hora fin</label>
+                <input type="time" id="calendarQuickEnd">
+              </div>
+            </div>
+
+            <label for="calendarQuickSector">Sector</label>
+            <select id="calendarQuickSector">
+              <option value="">Seleccionar sector</option>
+            </select>
+
+            <div class="calendar-quick-actions">
+              <button id="calendarQuickSaveBtn" type="button">Guardar</button>
+              <button id="calendarQuickCancelBtn" class="btn-secondary" type="button">Cancelar</button>
+            </div>
+          </section>
       </section>
 
       <section id="panel-recibos" class="menu-panel side-view">
           <h3>Recibos</h3>
+          <p class="panel-help">Subí respaldos en PDF o imagen para consultarlos cuando quieras.</p>
           <label>Agregar PDF o foto</label>
           <input type="file" id="receiptInput" accept=".pdf,image/*" multiple>
           <div id="receiptList" class="receipt-list"></div>
@@ -158,6 +305,73 @@
     </main>
   </div>
 </div>
+
+<section id="receiptPreviewModal" class="receipt-preview-modal hidden" aria-hidden="true">
+  <div class="receipt-preview-backdrop" data-close-receipt-preview="true"></div>
+  <div class="receipt-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptPreviewTitle">
+    <div class="receipt-preview-head">
+      <h3 id="receiptPreviewTitle">Vista previa</h3>
+      <button id="closeReceiptPreviewBtn" class="receipt-preview-close" type="button" aria-label="Cerrar vista previa">Cerrar</button>
+    </div>
+    <div id="receiptPreviewBody" class="receipt-preview-body"></div>
+  </div>
+</section>
+
+<section id="editHourModal" class="receipt-preview-modal hidden" aria-hidden="true">
+  <div class="receipt-preview-backdrop" data-close-edit-modal="true"></div>
+  <div class="receipt-preview-dialog edit-hour-dialog" role="dialog" aria-modal="true" aria-labelledby="editHourTitle">
+    <div class="receipt-preview-head">
+      <div>
+        <h3 id="editHourTitle">Editar hora</h3>
+        <p class="modal-subtitle">Actualizá fecha, horario y sector del registro.</p>
+      </div>
+      <button id="closeEditHourBtn" class="receipt-preview-close" type="button" aria-label="Cerrar edición">Cerrar</button>
+    </div>
+    <div class="receipt-preview-body">
+      <form id="editHourForm" class="edit-hour-form">
+        <label for="editHourDate">Fecha</label>
+        <input type="date" id="editHourDate" required>
+
+        <div class="form-grid">
+          <div>
+            <label for="editHourStart">Hora inicio</label>
+            <input type="time" id="editHourStart" required>
+          </div>
+          <div>
+            <label for="editHourEnd">Hora fin</label>
+            <input type="time" id="editHourEnd" required>
+          </div>
+        </div>
+
+        <label for="editHourSector">Sector</label>
+        <select id="editHourSector" required>
+          <option value="">Seleccionar sector</option>
+        </select>
+
+        <div class="calendar-quick-actions edit-hour-actions">
+          <button id="saveEditHourBtn" type="submit">Guardar cambios</button>
+          <button id="cancelEditHourBtn" class="btn-secondary" type="button">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section id="detailHoursModal" class="receipt-preview-modal hidden" aria-hidden="true">
+  <div class="receipt-preview-backdrop" data-close-detail-modal="true"></div>
+  <div class="receipt-preview-dialog detail-hours-dialog" role="dialog" aria-modal="true" aria-labelledby="detailHoursTitle">
+    <div class="receipt-preview-head">
+      <div>
+        <h3 id="detailHoursTitle">Detalle de horas</h3>
+        <p class="modal-subtitle">Revisá, editá o eliminá registros del período seleccionado.</p>
+      </div>
+      <button id="closeDetailHoursBtn" class="receipt-preview-close" type="button" aria-label="Cerrar detalle">Cerrar</button>
+    </div>
+    <div class="receipt-preview-body detail-hours-body">
+      <div id="resultado"></div>
+    </div>
+  </div>
+</section>
 
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

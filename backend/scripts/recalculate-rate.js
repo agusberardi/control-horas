@@ -1,39 +1,105 @@
+require("dotenv").config({ path: require("path").resolve(__dirname, "..", ".env") });
 const { createClient } = require("@supabase/supabase-js");
 
-const supabaseUrl = "https://kslcypddazdiqnvnubrx.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbGN5cGRkYXpkaXFudm51YnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzM3OTEsImV4cCI6MjA4Njg0OTc5MX0.gjtV9KLwtCps_HwN53vUYmbd4ipwVB7WMgmFhp2Fy4I";
-const PAGO_POR_HORA = 325;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PAGE_SIZE = 500;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en backend/.env");
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
+const profileCache = new Map();
+const forceRecalc = process.argv.includes("--force");
+const hourIdArg = process.argv.find((arg) => arg.startsWith("--hour-id="));
+const targetHourId = hourIdArg ? Number(hourIdArg.split("=")[1]) : null;
+const userIdArg = process.argv.find((arg) => arg.startsWith("--user-id="));
+const targetUserId = userIdArg ? userIdArg.split("=")[1] : null;
 
-function calcularHorasTrabajadas(startTime, endTime) {
-  const [sh, sm] = String(startTime || "").split(":").map(Number);
-  const [eh, em] = String(endTime || "").split(":").map(Number);
+function roundTo(value, decimals = 2) {
+  const factor = 10 ** decimals;
+  return Math.round((Number(value) + Number.EPSILON) * factor) / factor;
+}
 
-  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) {
+function parseTimeToMinutes(value) {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)/.exec(String(value || ""));
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function isNightMinute(minuteOfDay) {
+  return minuteOfDay >= 22 * 60 || minuteOfDay < 6 * 60;
+}
+
+function splitShiftHours(startTime, endTime) {
+  const startMinutes = parseTimeToMinutes(startTime);
+  const endMinutes = parseTimeToMinutes(endTime);
+
+  if (startMinutes === null || endMinutes === null) {
     return null;
   }
 
-  let startM = sh * 60 + sm;
-  let endM = eh * 60 + em;
-  if (endM <= startM) endM += 1440;
+  let durationMinutes = endMinutes - startMinutes;
+  if (durationMinutes <= 0) {
+    durationMinutes += 24 * 60;
+  }
 
-  return (endM - startM) / 60;
+  if (durationMinutes <= 0 || durationMinutes > 24 * 60) {
+    return null;
+  }
+
+  let nightMinutes = 0;
+  for (let offset = 0; offset < durationMinutes; offset += 1) {
+    const minuteOfDay = (startMinutes + offset) % (24 * 60);
+    if (isNightMinute(minuteOfDay)) {
+      nightMinutes += 1;
+    }
+  }
+
+  const normalMinutes = durationMinutes - nightMinutes;
+
+  return {
+    worked_hours_total: roundTo(durationMinutes / 60, 4),
+    worked_hours_normal: roundTo(normalMinutes / 60, 4),
+    worked_hours_night: roundTo(nightMinutes / 60, 4)
+  };
+}
+
+async function getProfileRates(userId) {
+  if (profileCache.has(userId)) {
+    return profileCache.get(userId);
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("hourly_rate, hourly_rate_night")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Error leyendo perfil user_id=${userId}: ${error.message}`);
+  }
+
+  const rates = {
+    hourlyRate: Number(data?.hourly_rate),
+    hourlyRateNight: Number(data?.hourly_rate_night)
+  };
+
+  profileCache.set(userId, rates);
+  return rates;
 }
 
 async function main() {
   let from = 0;
   let updated = 0;
   let skipped = 0;
-  let page = 0;
 
   while (true) {
     const to = from + PAGE_SIZE - 1;
     const { data, error } = await supabase
       .from("hours")
-      .select("id,start_time,end_time,money")
+      .select("id,user_id,start_time,end_time,money,worked_hours_total,worked_hours_normal,worked_hours_night,hourly_rate_snapshot,hourly_rate_night_snapshot")
       .order("id", { ascending: true })
       .range(from, to);
 
@@ -46,20 +112,56 @@ async function main() {
     }
 
     for (const row of data) {
-      const hours = calcularHorasTrabajadas(row.start_time, row.end_time);
-      if (hours === null) {
+      if (targetUserId && row.user_id !== targetUserId) {
+        continue;
+      }
+
+      if (targetHourId && row.id !== targetHourId) {
+        continue;
+      }
+
+      const split = splitShiftHours(row.start_time, row.end_time);
+      if (!split) {
         skipped += 1;
         continue;
       }
 
-      const money = Number((hours * PAGO_POR_HORA).toFixed(2));
-      if (Number(row.money) === money) {
+      const { hourlyRate, hourlyRateNight } = await getProfileRates(row.user_id);
+      if (!Number.isFinite(hourlyRate) || hourlyRate <= 0 || !Number.isFinite(hourlyRateNight) || hourlyRateNight <= 0) {
+        skipped += 1;
         continue;
       }
 
+      const currentTotal = Number(row.worked_hours_total);
+      const alreadyBackfilled =
+        Number.isFinite(currentTotal) &&
+        currentTotal > 0 &&
+        row.hourly_rate_snapshot !== null &&
+        row.hourly_rate_night_snapshot !== null &&
+        Number(row.money) === roundTo(split.worked_hours_normal * Number(row.hourly_rate_snapshot) + split.worked_hours_night * Number(row.hourly_rate_night_snapshot), 2);
+
+      if (!forceRecalc && alreadyBackfilled) {
+        continue;
+      }
+
+      const money = roundTo(
+        split.worked_hours_normal * hourlyRate +
+        split.worked_hours_night * hourlyRateNight,
+        2
+      );
+
+      const payload = {
+        worked_hours_total: split.worked_hours_total,
+        worked_hours_normal: split.worked_hours_normal,
+        worked_hours_night: split.worked_hours_night,
+        hourly_rate_snapshot: roundTo(hourlyRate, 2),
+        hourly_rate_night_snapshot: roundTo(hourlyRateNight, 2),
+        money
+      };
+
       const { error: updateError } = await supabase
         .from("hours")
-        .update({ money })
+        .update(payload)
         .eq("id", row.id);
 
       if (updateError) {
@@ -69,15 +171,12 @@ async function main() {
       updated += 1;
     }
 
-    page += 1;
     from += PAGE_SIZE;
-    console.log(`Pagina ${page} procesada (${data.length} filas)`);
   }
 
-  console.log("Recálculo completado");
-  console.log(`Tarifa aplicada: ${PAGO_POR_HORA}`);
+  console.log("Backfill histórico completado");
   console.log(`Registros actualizados: ${updated}`);
-  console.log(`Registros omitidos por formato inválido: ${skipped}`);
+  console.log(`Registros omitidos: ${skipped}`);
 }
 
 main().catch((err) => {
