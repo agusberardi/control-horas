@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <title>Control de Horas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b5ca9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Control Horas" />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,12 +28,12 @@
   <h2>Iniciar sesión</h2>
   <p class="auth-subtitle">Gestioná turnos, horas y recibos desde un solo lugar.</p>
 
-  <div class="auth-form">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button onclick="login()">Entrar</button>
-    <button class="btn-secondary" onclick="register()">Crear cuenta</button>
-  </div>
+  <form id="authForm" class="auth-form" autocomplete="on">
+    <input type="email" id="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+    <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password">
+    <button type="submit">Entrar</button>
+    <button class="btn-secondary" type="button" onclick="register()">Crear cuenta</button>
+  </form>
 </div>
 
 <!-- APP (OCULTA HASTA LOGIN) -->
